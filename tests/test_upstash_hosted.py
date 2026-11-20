@@ -136,7 +136,7 @@ def test_pipeline_and_gates_through_hosted_store(monkeypatch):
     monkeypatch.setitem(graph.resources(), "store", S.HybridStore(sparse, None, [st]))
     out = graph.run("What amenities does Les Vagues have?", use_llm=False)
     assert out["properties"][0]["id"] == "darglobal:les-vagues" and out["store"].startswith("upstash-hosted")
-    rows = [score_item(it, graph.run(it["query"], top_k=8, use_llm=False), judge=False) for it in load_golden()]
+    rows = [score_item(it, graph.run(it["query"], top_k=8, use_llm=False), judge=False) for it in load_golden() + load_golden("eval/questions.jsonl")]
     o = aggregate(rows)["overall"]
     for m, th in GATES.items():
         assert o[m] >= th, (m, o[m])

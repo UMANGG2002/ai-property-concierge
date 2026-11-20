@@ -155,11 +155,13 @@ DOMAIN = re.compile(r"propert|villa|apartment|flat|house|home|penthouse|duplex|t
                     r"bed|bath|sqm|m2|price|sar|riyal|budget|million|sale|buy|rent|invest|project|develop|amenit|"
                     r"location|district|community|darglobal|dar global|wasalt|listing|residence|hotel|golf|beach|"
                     r"payment|handover|brochure|faq|partner|brand|luxury|riyadh|jeddah|dubai|oman|qatar|spain|london|"
+                    r"club|course|member|complet|handover|delivery|expected|value|worth|ready|status|launch|unit|tower|marina|island|resort|"
+                    r"sea view|interior|design|furnish|security|spa|pool|gym|cinema|visa|tax|yield|roi|return|gated|view|floor|size|"
                     r"عقار|شقة|فيلا|أرض|سعر|للبيع|غرف", re.I)
 
 
 def parse_rules(query: str, vocab: Vocab) -> Parsed:
-    q = " " + fix_typos(re.sub(r"\s+", " ", query.lower())) + " "
+    q = " " + fix_typos(re.sub(r"\s+", " ", re.sub(r"\bgold (club|course|villa|villas|resort)", r"golf \1", query.lower()))) + " "
     f = Filters()
     notes = []
 

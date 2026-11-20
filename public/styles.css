@@ -433,3 +433,26 @@ table.data td.good { color: var(--ok); } table.data td.low { color: var(--bad); 
 .kpis.models .kpi .s { line-height: 1.55; }
 @media (max-width: 1000px) { .story, .pc-flow, .exp-grid { grid-template-columns: 1fr 1fr; } .story-card { position: static; } }
 @media (max-width: 760px) { .story, .pc-flow, .exp-grid { grid-template-columns: 1fr; } .pc-flow div + div { padding-left: 0; border-left: 0; border-top: 1px solid var(--line); } }
+
+/* ---------------- suggested questions (tabs by aspect) */
+.ideas { padding: clamp(48px, 7vw, 84px) clamp(20px, 5vw, 64px) 8px; max-width: 1240px; margin: 0 auto; }
+.sec-sub { max-width: 62ch; margin: 14px auto 0; text-align: center; color: var(--ink-2); line-height: 1.7; font-size: 15px; }
+.idea-tabs { display: flex; flex-wrap: wrap; gap: 6px 22px; margin: 28px 0 20px; border-bottom: 1px solid var(--line); }
+.idea-tab { background: none; border: 0; padding: 0 0 12px; margin-bottom: -1px; border-bottom: 2px solid transparent; font: 500 11px/1 var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--muted); cursor: pointer; transition: color .2s, border-color .2s; }
+.idea-tab:hover { color: var(--ink); }
+.idea-tab.on { color: var(--ink); border-bottom-color: var(--gold); }
+.idea-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 10px 22px; }
+.idea { display: flex; align-items: center; gap: 12px; text-align: left; background: var(--surface); border: 1px solid var(--line); padding: 14px 16px; color: var(--ink); font-size: 14px; line-height: 1.45; cursor: pointer; transition: border-color .2s, transform .2s var(--ease); }
+.idea:hover { border-color: var(--gold); transform: translateX(3px); }
+.idea .ic { width: 15px; height: 15px; flex: none; color: var(--gold); }
+
+/* ---------------- related properties are secondary to the answer */
+.related-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 14px; margin: 30px 0 14px; padding-top: 18px; border-top: 1px solid var(--line); }
+.related-head small { font: 500 10px/1 var(--sans); letter-spacing: .22em; text-transform: uppercase; color: var(--gold); }
+.related-head span { font-size: 12.5px; color: var(--muted); }
+.cards.compact { grid-template-columns: repeat(auto-fill, minmax(188px, 1fr)); gap: 14px; }
+.cards.compact .pmedia { aspect-ratio: 16/10; }
+.cards.compact .pfacts, .cards.compact .ptags, .cards.compact .pfoot .link, .cards.compact .psrc { display: none; }
+.cards.compact .ptitle { font-size: 16px; }
+.cards.compact .pbody { padding: 12px 14px 8px; gap: 6px; }
+.cards.compact .pfoot { padding: 0 14px 14px; }

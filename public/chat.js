@@ -2,6 +2,7 @@
 (() => {
   const { API, esc, safeUrl, fmt, icon, hydrateIcons, toast } = window.UI;
   const $ = (s, el = document) => el.querySelector(s);
+  const $$ = (s, el = document) => [...el.querySelectorAll(s)];
   const KIND = { unit_listing: "Resale listing", development_project: "Development", one_of_one: "One of One", partner: "Brand partner", info_page: "DarGlobal", article: "Article" };
   const PROPERTY_KINDS = ["unit_listing", "development_project", "one_of_one"];
   const cards = new Map();   // property id -> card payload from /api/chat
@@ -14,8 +15,23 @@
   hm.innerHTML = HERO.map((u, i) => `<div class="slide ${i === 0 ? "on" : ""}" style="background-image:url('${u}')"></div>`).join("");
   let hs = 0; setInterval(() => { const sl = hm.querySelectorAll(".slide"); sl[hs].classList.remove("on"); hs = (hs + 1) % sl.length; sl[hs].classList.add("on"); }, 6500);
 
-  const PROMPTS = ["Why invest in Marea?", "Villas in AIDA, Oman", "4 bedroom villa in North Riyadh under 3M", "Amenities at Les Vagues", "شقة للبيع في الرياض"];
-  $("#hero-prompts").innerHTML = PROMPTS.map((t) => `<button type="button" data-ask="${esc(t)}">${esc(t)}</button>`).join("");
+  // suggestions come from eval/build_questions.py (public/prompts.json): one aspect per tab, each about a different property
+  const FALLBACK = { "Good to know": ["When is The Astera expected to be completed?"], Investment: ["Marea, Interiors by Missoni why to invest"], "Price & value": ["What is the value of The Astera development?"], Lifestyle: ["Does AIDA have a golf club?"] };
+  const askBtn = (t) => `<button type="button" data-ask="${esc(t)}">${esc(t)}</button>`;
+  fetch("/prompts.json").then((r) => (r.ok ? r.json() : FALLBACK)).catch(() => FALLBACK).then((P) => {
+    const tabs = Object.keys(P);
+    const pick = (a) => a[Math.floor(Math.random() * a.length)];
+    $("#hero-prompts").innerHTML = tabs.filter((t) => t !== "Riyadh homes").slice(0, 5).map((t) => askBtn(pick(P[t]))).join("");
+    const ideas = $("#ideas-body");
+    if (!ideas) return;
+    const show = (t) => {
+      $$(".idea-tab", ideas).forEach((b) => b.classList.toggle("on", b.dataset.tab === t));
+      $("#idea-list", ideas).innerHTML = P[t].map((q) => `<button type="button" class="idea" data-ask="${esc(q)}">${icon("chevR")}<span>${esc(q)}</span></button>`).join("");
+    };
+    ideas.innerHTML = `<div class="idea-tabs" role="tablist">${tabs.map((t) => `<button type="button" class="idea-tab" role="tab" data-tab="${esc(t)}">${esc(t)}</button>`).join("")}</div><div class="idea-list" id="idea-list"></div>`;
+    $$(".idea-tab", ideas).forEach((b) => (b.onclick = () => show(b.dataset.tab)));
+    show(tabs[0]);
+  });
 
   const COLLECTIONS = [
     ["Trump International Hotel & Tower", "Dubai, UAE", "https://cdn.darglobal.co.uk/TTD_Executive_Suite_12ca223803.webp", "Tell me about Trump International Hotel and Tower Dubai"],
@@ -110,12 +126,13 @@
     const relaxed = (d.relaxed || []).length ? `<div class="notice">${icon("info")}<span>Nothing matched every detail, so these are the closest alternatives.</span></div>` : "";
     const dbg = debug ? `<details class="dbg"><summary>Diagnostics</summary><pre>${esc(JSON.stringify({ mode: d.answer_mode, model: d.model, store: d.store, timings: d.timings, understood: d.understood, filters_used: d.filters_used, relaxed: d.relaxed, grounding: d.grounding, errors: d.errors }, null, 2))}</pre><pre>${esc(d.context || "")}</pre></details>` : "";
     const top = props[0];
+    const isSearch = Object.keys((d.understood || {}).filters || {}).length > 0 || /^(I found|These are|Nothing matched)/.test(d.answer || "");
     const hl = top && PROPERTY_KINDS.concat("partner").includes(top.record_kind) ? highlights(top) : "";
     return `
       ${relaxed}
-      <div class="answer">${mdLite(d.answer || "", Math.min(props.length, 8))}</div>
+      <div class="answer">${mdLite((d.answer || "").replace(/\n*Related:[^\n]*$/, ""), Math.min(props.length, 8))}</div>
       <div class="answer-tools"><button class="tool copy" type="button">${icon("copy")}Copy</button>${props.length ? `<span>${props.length} ${props.length === 1 ? "residence" : "residences"} referenced</span>` : ""}</div>
-      ${props.length ? `<div class="cards">${props.map((p, i) => card(p, i + 1)).join("")}</div>` : ""}
+      ${props.length ? `<div class="related-head"><small>${isSearch ? "Matching properties" : "Related properties"}</small><span>${isSearch ? "" : "Sources for the answer above, and similar places to explore"}</span></div><div class="cards ${isSearch ? "" : "compact"}">${props.map((p, i) => card(p, i + 1)).join("")}</div>` : ""}
       ${hl ? `<div class="hl-panel"><div class="hl-head"><div><small>In focus</small><b>${esc(top.title)}</b></div><button class="btn-line" type="button" data-open="${esc(top.id)}">View residence</button></div>${hl}</div>` : ""}
       ${dbg}`;
   }

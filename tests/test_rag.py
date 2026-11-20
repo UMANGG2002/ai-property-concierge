@@ -103,7 +103,7 @@ def test_named_project_ranks_first():
 
 def test_price_never_invented_for_darglobal():
     out = graph.run("What is the price of Marea?", use_llm=False)
-    assert "pricing is not published" in out["answer"].lower()
+    assert "not published" in out["answer"].lower()
 
 
 def test_empty_and_huge_queries_do_not_fail():
@@ -209,9 +209,26 @@ def test_api():
 # ---------------------------------------------------------------- golden-set regression gates (retrieval, no LLM)
 def test_golden_gates():
     from eval.run_eval import GATES, aggregate, load_golden, score_item
-    items = load_golden()
+    items = load_golden() + load_golden("eval/questions.jsonl")
     assert len(items) >= 150
     rows = [score_item(it, graph.run(it["query"], top_k=8, use_llm=False), judge=False) for it in items]
     o = aggregate(rows)["overall"]
     for m, th in GATES.items():
         assert o[m] >= th, (m, o[m])
+
+
+# ---------------------------------------------------------------- question first, properties second
+def test_question_first_answers():
+    lead = lambda q: graph.run(q, use_llm=False)["answer"].split("\n\n")[0]                        # noqa: E731
+    assert "December 2028" in lead("When is The Astera expected to be completed?")
+    assert "not published" in lead("What is the value of The Astera development?")
+    assert "Robust tourism" in lead("Marea, Interiors by Missoni why to invest")
+    assert lead("Does Les Vagues have a swimming pool?").startswith("Yes")
+    assert "don't see" in lead("Does Les Vagues have a spa?")                                    # honest no, not a guess
+    out = graph.run("gold club", use_llm=False)                                                       # typo for "golf club"; never rejected
+    assert out["answer_mode"] != "out_of_scope" and "golf" in out["answer"].lower()
+
+
+def test_suggestions_follow_the_answer():
+    ans = graph.run("When is The Astera expected to be completed?", use_llm=False)["answer"]
+    assert ans.index("December 2028") < ans.index("Related:")

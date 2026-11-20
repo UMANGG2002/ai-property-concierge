@@ -4,17 +4,16 @@ Per item:   parse accuracy, Hit@1/3/5, MRR, Recall@k, Precision@k (filter precis
             intent / relaxation behaviour, answer checks (must / must-not contain), grounding (unsupported numbers,
             citations), optional LLM-judge faithfulness/relevance/completeness (1-5), and stage latencies.
 Aggregates: per category and overall, with pass/fail gates.
-Outputs:    data/reports/eval_report.json, eval_results.csv, eval_report.md, and api/eval_report.json (for the UI).
+Outputs:    eval/eval_report.json (read by the UI and /api/eval) and eval/eval_report.md.
 
-    uv run python evaluate.py                      # retrieval + behaviour, template answers (fast, free, no key)
-    uv run python evaluate.py --llm                # + real answers from OpenRouter
-    uv run python evaluate.py --llm --judge        # + LLM-as-judge scores
-    uv run python evaluate.py --category wasalt_list --limit 10
+    uv run python -m eval.run_eval                      # retrieval + behaviour, template answers (fast, free, no key)
+    uv run python -m eval.run_eval --llm                # + real answers from OpenRouter
+    uv run python -m eval.run_eval --llm --judge        # + LLM-as-judge scores
+    uv run python -m eval.run_eval --category wasalt_list --limit 10
 """
 from __future__ import annotations
 
 import argparse
-import csv
 import json
 import math
 import statistics
@@ -27,7 +26,7 @@ from rag.graph import resources, run
 from rag.llm import LLMUnavailable, get_llm
 
 K = 8
-GATES = {"hit@5": 0.85, "mrr": 0.70, "precision@k": 0.90, "parse_accuracy": 0.90, "behaviour_pass": 0.90}
+GATES = {"answer_first_ok": 0.85, "hit@5": 0.85, "mrr": 0.70, "precision@k": 0.90, "parse_accuracy": 0.90, "behaviour_pass": 0.90}
 JUDGE = """You grade a real-estate assistant's answer. Given CONTEXT, QUESTION and ANSWER, return JSON only:
 {"faithfulness": 1-5 (5 = every claim supported by context), "relevance": 1-5 (5 = directly answers the question),
  "completeness": 1-5 (5 = covers what the context offers for this question), "reason": "<15 words"}"""
@@ -90,6 +89,10 @@ def score_item(it: dict, out: dict, judge: bool) -> dict:
     if must:
         beh_ans = all(m.lower() in ans for m in must)
         row["answer_contains_ok"] = float(beh_ans)
+    if it.get("answer_first") and (it.get("expect_terms") or it.get("expect_any")):
+        lead = (out.get("answer") or "").split("Related:")[0][:900].lower()      # the answer itself, before any suggestions
+        ok = all(t.lower() in lead for t in it.get("expect_terms") or []) and (not it.get("expect_any") or any(t.lower() in lead for t in it["expect_any"]))
+        row["answer_first_ok"] = float(ok)
     if it.get("answer_must_not_contain"):
         row["answer_excludes_ok"] = float(not any(m.lower() in ans for m in it["answer_must_not_contain"]))
     if beh:
@@ -117,7 +120,7 @@ def score_item(it: dict, out: dict, judge: bool) -> dict:
     return row
 
 
-METRICS = ["hit@1", "hit@3", "hit@5", "mrr", "recall@k", "precision@k", "ndcg@k", "parse_accuracy", "behaviour_pass",
+METRICS = ["answer_first_ok", "hit@1", "hit@3", "hit@5", "mrr", "recall@k", "precision@k", "ndcg@k", "parse_accuracy", "behaviour_pass",
            "answer_contains_ok", "answer_excludes_ok", "has_citation", "unsupported_numbers",
            "judge_faithfulness", "judge_relevance", "judge_completeness"]
 
@@ -155,17 +158,17 @@ def to_markdown(rep: dict) -> str:
     for m, th in GATES.items():
         v = o.get(m)
         L.append(f"| {m} | {v if v is not None else '—'} | ≥ {th} | {'✅' if v is not None and v >= th else '❌'} |")
-    L += ["", "## By category", "", "| Category | n | Hit@1 | Hit@5 | MRR | Recall@k | Precision@k | Parse | Behaviour | Answer checks | p50 ms |",
-          "|---|---|---|---|---|---|---|---|---|---|---|"]
+    L += ["", "## By category", "", "| Category | n | Answer-first | Hit@1 | Hit@5 | MRR | Recall@k | Precision@k | Parse | Behaviour | Answer checks | p50 ms |",
+          "|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for c, a in rep["summary"]["by_category"].items():
         f = lambda k: f"{a[k]:.2f}" if k in a else "—"                                     # noqa: E731
-        L.append(f"| {c} | {a['n']} | {f('hit@1')} | {f('hit@5')} | {f('mrr')} | {f('recall@k')} | {f('precision@k')} | "
+        L.append(f"| {c} | {a['n']} | {f('answer_first_ok')} | {f('hit@1')} | {f('hit@5')} | {f('mrr')} | {f('recall@k')} | {f('precision@k')} | "
                  f"{f('parse_accuracy')} | {f('behaviour_pass')} | {f('answer_contains_ok')} | {a.get('latency_ms_p50', '—')} |")
     fails = [r for r in rep["results"] if r.get("hit@5") == 0.0 or r.get("behaviour_pass") == 0.0 or r.get("parse_ok") is False
-             or r.get("answer_contains_ok") == 0.0 or (r.get("precision@k") is not None and r["precision@k"] < 0.75)]
+             or r.get("answer_contains_ok") == 0.0 or r.get("answer_first_ok") == 0.0 or (r.get("precision@k") is not None and r["precision@k"] < 0.75)]
     L += ["", f"## Items to look at ({len(fails)})", ""]
     for r in fails[:60]:
-        why = [k for k in ("hit@5", "behaviour_pass", "answer_contains_ok") if r.get(k) == 0.0]
+        why = [k for k in ("hit@5", "behaviour_pass", "answer_contains_ok", "answer_first_ok") if r.get(k) == 0.0]
         if r.get("parse_ok") is False:
             why.append("parse")
         if r.get("precision@k") is not None and r["precision@k"] < 0.75:
@@ -175,17 +178,22 @@ def to_markdown(rep: dict) -> str:
 
 
 def main(argv=None) -> int:
+    from rag.env import load_env
+    load_env()
     ap = argparse.ArgumentParser()
     ap.add_argument("--golden", default="eval/golden.jsonl")
+    ap.add_argument("--questions", default="eval/questions.jsonl", help="generated per-aspect questions (eval/build_questions.py)")
     ap.add_argument("--llm", action="store_true", help="generate real answers with OpenRouter")
     ap.add_argument("--judge", action="store_true", help="LLM-as-judge scoring (needs --llm)")
     ap.add_argument("--category", action="append", default=[])
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--sleep", type=float, default=0.0, help="seconds between items (free-tier rate limits)")
-    ap.add_argument("--out", default="data/reports")
+    ap.add_argument("--out", default="eval")
     ap.add_argument("--strict", action="store_true", help="exit 1 if any gate fails")
     a = ap.parse_args(argv)
     items = load_golden(a.golden)
+    if a.questions and Path(a.questions).exists():
+        items += load_golden(a.questions)
     if a.category:
         items = [i for i in items if i["category"] in a.category]
     if a.limit:
@@ -209,20 +217,11 @@ def main(argv=None) -> int:
     rep["gates_passed"] = {m: (summary["overall"].get(m) is not None and summary["overall"][m] >= th) for m, th in GATES.items()}
     outd = Path(a.out)
     outd.mkdir(parents=True, exist_ok=True)
-    (outd / "eval_report.json").write_text(json.dumps(rep, ensure_ascii=False, indent=2), encoding="utf-8")
+    (outd / "eval_report.json").write_text(json.dumps(rep, ensure_ascii=False), encoding="utf-8")
     (outd / "eval_report.md").write_text(to_markdown(rep), encoding="utf-8")
-    keys = sorted({k for r in rows for k in r})
-    first = ["id", "category", "query", "answer_mode", "returned", "expected"]
-    with open(outd / "eval_results.csv", "w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=first + [k for k in keys if k not in first])
-        w.writeheader()
-        w.writerows(rows)
-    Path("api").mkdir(exist_ok=True)
-    (Path("api") / "eval_report.json").write_text(json.dumps({k: v for k, v in rep.items() if k != "results"} |
-                                                             {"results": rows}, ensure_ascii=False), encoding="utf-8")
     o = summary["overall"]
     print(f"\n{o['n']} items in {rep['seconds']}s · store={rep['store']} · answers={rep['answer_source']}")
-    for m in ("hit@1", "hit@5", "mrr", "recall@k", "precision@k", "ndcg@k", "parse_accuracy", "behaviour_pass",
+    for m in ("answer_first_ok", "hit@1", "hit@5", "mrr", "recall@k", "precision@k", "ndcg@k", "parse_accuracy", "behaviour_pass",
               "answer_contains_ok", "judge_faithfulness", "latency_ms_p50", "latency_ms_p95"):
         if m in o:
             gate = GATES.get(m)
