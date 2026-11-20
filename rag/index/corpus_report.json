@@ -1,0 +1,114 @@
+{
+  "records": 154,
+  "chunks": 905,
+  "by_source": {
+    "darglobal": 74,
+    "wasalt": 80
+  },
+  "expected": {
+    "darglobal": 74,
+    "wasalt": 80
+  },
+  "missing": {},
+  "by_kind": {
+    "info_page": 19,
+    "development_project": 35,
+    "article": 2,
+    "partner": 11,
+    "one_of_one": 7,
+    "unit_listing": 80
+  },
+  "property_records": 122,
+  "property_types": {
+    "villa": 55,
+    "hotel_room": 5,
+    "apartment": 54,
+    "land": 3,
+    "studio": 1,
+    "mansion": 3,
+    "penthouse": 4,
+    "duplex": 2,
+    "townhouse": 3,
+    "floor": 2,
+    "building": 2
+  },
+  "countries": {
+    "Oman": 15,
+    "Saudi Arabia": 88,
+    "United Arab Emirates": 12,
+    "Qatar": 2,
+    "Spain": 3,
+    "United Kingdom": 2
+  },
+  "chunk_types": {
+    "overview": 60,
+    "summary": 40,
+    "facts": 33,
+    "key_features": 20,
+    "amenities": 30,
+    "why_invest": 31,
+    "location": 32,
+    "gallery": 32,
+    "faq": 271,
+    "property_card": 19,
+    "other": 202,
+    "article_body": 7,
+    "sub_projects": 1,
+    "related_projects": 11,
+    "features": 1,
+    "section": 35,
+    "listing": 80
+  },
+  "chunk_words": {
+    "min": 14,
+    "median": 77,
+    "max": 343,
+    "over_500": 0
+  },
+  "duplicate_chunk_ids": [],
+  "orphan_chunks": [],
+  "validation_issues": {},
+  "flags": {
+    "faq_missing": 18,
+    "price_not_published": 42,
+    "area_missing": 5,
+    "city_missing": 3,
+    "key_features_below_target": 5,
+    "property_type_missing": 5,
+    "status_missing": 10,
+    "unit_type_missing": 11,
+    "duplicate_of:darglobal:landing-page/aida": 1,
+    "gallery_below_target": 16,
+    "area_conflict": 8,
+    "amenities_below_target": 7,
+    "location_below_target": 7,
+    "no_visible_text_in_static_html": 3,
+    "duplicate_of:darglobal:dg-villas-at-jge": 1,
+    "about_missing": 1,
+    "amenities_missing": 3,
+    "country_missing": 2,
+    "gallery_missing": 1,
+    "location_missing": 1,
+    "why_invest_below_target": 1,
+    "own_page_not_fetched_data_from_collection": 1,
+    "images_missing": 80,
+    "price_missing": 2,
+    "description_en_missing": 15,
+    "zone_missing": 4,
+    "bedrooms_missing": 3
+  },
+  "darglobal": {
+    "docs": 73,
+    "projects": 35,
+    "one_of_one": 7,
+    "info": 32,
+    "skipped_duplicates": [],
+    "one_of_one_pages_seen": 6
+  },
+  "duplicates_collapsed": {
+    "darglobal:aida-rizz-villas": "darglobal:landing-page/aida",
+    "darglobal:d-villas-at-jge": "darglobal:dg-villas-at-jge"
+  },
+  "parents_json_bytes": 1323578,
+  "ok": true
+}

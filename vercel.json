@@ -2,10 +2,8 @@
   "functions": {
     "api/index.py": {
       "maxDuration": 60,
-      "includeFiles": "{data/corpus/**,eval/golden.jsonl,eval/*.py,api/eval_report.json}"
+      "includeFiles": "{rag/index/**,eval/golden.jsonl,eval/eval_report.json}"
     }
   },
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index" }
-  ]
+  "rewrites": [{ "source": "/api/(.*)", "destination": "/api/index" }]
 }

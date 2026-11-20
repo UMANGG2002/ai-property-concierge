@@ -1,0 +1,13 @@
+services:
+  concierge:
+    build: .
+    image: property-concierge:latest
+    ports:
+      - "8000:8000"
+    environment:
+      UPSTASH_VECTOR_REST_URL: ${UPSTASH_VECTOR_REST_URL:-}
+      UPSTASH_VECTOR_REST_TOKEN: ${UPSTASH_VECTOR_REST_TOKEN:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_MODELS: ${OPENROUTER_MODELS:-}
+      EVAL_TOKEN: ${EVAL_TOKEN:-}
+    restart: unless-stopped

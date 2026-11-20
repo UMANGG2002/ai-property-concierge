@@ -1,11 +1,11 @@
 """Build the unified corpus from both sources.
 
-Writes data/corpus/:
+Writes rag/index/:
   records.jsonl   one line per record (154 = 74 DarGlobal + 80 Wasalt), full unified schema
   chunks.jsonl    what gets embedded (text + flat filter metadata + parent_id + chunk_type + content_hash)
   parents.json    id -> {title, url, full_text, summary, metadata}; read by the API to expand hits to whole records
   corpus_report.json  counts, validation issues, flags, chunk size health
-The report fails loudly (exit code != 0 in build_index.py) if any expected record is missing or invalid.
+The report fails loudly (exit code != 0 in rag/build.py) if any expected record is missing or invalid.
 """
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ EXPECTED = {"darglobal": 74, "wasalt": 80}
 
 
 def build_corpus(data_dir: str | Path = "data", wasalt_csv: str | Path = "data/wasalt_riyadh_sale.csv",
-                 out_dir: str | Path = "data/corpus") -> dict:
+                 out_dir: str | Path = "rag/index") -> dict:
     from .sources.darglobal import load_darglobal          # build-time only
     from .sources.wasalt_csv import load_wasalt_csv
     data_dir, out_dir = Path(data_dir), Path(out_dir)
