@@ -10,13 +10,30 @@ import re
 
 STOP = set("""a an the of in on at to for and or is are was were be been do does did can could would should will what which who whom
 whose when where why how this that these those it its with from by about me my i you your tell give show please there any
-some more also than then so as if into over under around near development developments project projects property properties""".split())
+some more also than then so as if into over under around near development developments project projects property properties long much many good need want like get got know let thinking looking expect interested kind wondering really actually just buyer buyers buy purchase""".split())
 
 # query word -> related words that may appear in the answer (kept deliberately small and domain specific)
 SYN = {
+    "move": {"handover", "complet", "delivery", "ready", "scheduled"},
+    "ready": {"complet", "handover", "delivery", "scheduled"},
+    "overseas": {"foreign", "international", "freehold", "ownership", "nationalities", "nationals"},
+    "buyer": {"ownership", "freehold", "purchase"},
+    "drive": {"minutes", "away", "distance", "airport"},
+    "big": {"sqm", "size", "area", "range", "ranging"},
+    "grow": {"growth", "capital", "increase", "appreciation"},
+    "value": {"price", "cost", "pricing", "worth", "aed", "usd", "sar", "starting", "from", "capital"},
+    "foreign": {"freehold", "ownership", "nationalities", "nationals", "expat"},
+    "foreigner": {"foreign", "freehold", "ownership", "nationalities", "nationals", "expat", "international"},
+    "abroad": {"freehold", "ownership", "nationalities", "nationals", "foreign"},
+    "own": {"freehold", "ownership"},
+    "residency": {"visa", "golden", "residence", "lifetime"},
+    "rental": {"yield", "income", "rent", "return", "roi", "occupancy"},
+    "children": {"kids", "play", "family", "school", "playground"},
+    "family": {"kids", "play", "school", "children", "playground"},
+    "swim": {"pool", "swimming"},
+    "walk": {"minutes", "beach", "promenade", "trail"},
     "complet": {"handover", "delivery", "deliver", "ready", "construction", "finish", "expected", "scheduled", "open"},
     "handover": {"complet", "delivery", "construction", "scheduled"},
-    "value": {"price", "cost", "pricing", "worth", "aed", "usd", "sar", "starting", "from"},
     "price": {"pricing", "cost", "value", "starting", "aed", "usd", "sar", "from"},
     "cost": {"price", "pricing", "value", "starting"},
     "pay": {"payment", "instalment", "installment", "plan", "deposit", "down"},
@@ -31,7 +48,7 @@ SYN = {
     "visa": {"residency", "golden", "residence"},
     "tax": {"taxation", "income", "property"},
     "invest": {"investment", "return", "yield", "roi", "capital", "growth", "appreciation"},
-    "return": {"yield", "roi", "invest", "income"},
+    "return": {"yield", "roi", "invest", "income", "growth", "capital", "appreciation", "occupancy", "rental"},
     "locat": {"situated", "island", "minutes", "away", "district", "area", "address"},
     "airport": {"minutes", "away", "drive", "distance"},
     "bedroom": {"bed", "beds", "br", "unit", "units", "sizes", "range"},
@@ -45,7 +62,7 @@ SYN = {
     "rent": {"rental", "yield", "income", "lease"},
 }
 
-PRICE_Q = re.compile(r"\b(price|prices|pricing|cost|costs|how much|value|worth|starting from|starts? at|budget)\b", re.I)
+PRICE_Q = re.compile(r"\b(price|prices|pricing|cost|costs|how much (does|do|is|would|will)|value of|worth|starting from|starts? at|budget)\b", re.I)
 
 
 def _stem(w: str) -> str:
@@ -60,7 +77,7 @@ def toks(text: str) -> list[str]:
 
 
 def _prefix_in(stem: str, bag: set[str]) -> bool:
-    return stem in bag or any(len(stem) >= 5 and b.startswith(stem[:5]) and len(b) >= 5 for b in bag)
+    return stem in bag or (len(stem) >= 6 and any(b.startswith(stem) for b in bag))
 
 
 def units(parent: dict) -> list[dict]:
@@ -95,34 +112,64 @@ def units(parent: dict) -> list[dict]:
     return out
 
 
+def _sentences(text: str) -> list[str]:
+    return [s.strip() for s in re.split(r"(?<=[.!?])\s+|\n+", text) if len(s.strip()) > 2]
+
+
+def _hit(w: str, bag: set[str]) -> float:
+    """1.0 for the word itself, 0.55 for a domain synonym, else 0."""
+    if _prefix_in(w, bag):
+        return 1.0
+    return 0.55 if {_stem(x) for x in SYN.get(w, ())} & bag else 0.0
+
+
 def _score(qt: list[str], unit: dict) -> float:
+    """0..1: how well one passage answers the question. FAQs: question + answer overlap; prose: its single best sentence."""
     if not qt:
         return 0.0
-    body = set(toks(unit["text"]))
-    qbag = set(toks(unit["q"]))
-    s = 0.0
-    for w in qt:
-        exp = {_stem(x) for x in SYN.get(w, ())}
-        if _prefix_in(w, qbag):
-            s += 2.0
-        elif exp & qbag:
-            s += 1.4
-        if _prefix_in(w, body):
-            s += 1.0
-        elif exp & body:
-            s += 0.5
     if unit["kind"] == "faq":
-        s *= 1.15
-    elif unit["kind"] == "about":
-        s *= 0.6
-    return s / (len(qt) * 3.0)          # 0..~1
+        body, qbag = set(toks(unit["text"])), set(toks(unit["q"]))
+        s = sum(2.0 * _hit(w, qbag) + _hit(w, body) for w in qt) / (3.0 * len(qt))
+        return min(1.0, s * 1.15)
+    best, bestsent = 0.0, ""
+    for sent in _sentences(unit["text"]) or [unit["text"]]:
+        bag = set(toks(sent))
+        sc = sum(_hit(w, bag) for w in qt) / len(qt)
+        if sc > best:
+            best, bestsent = sc, sent
+    unit["focus_sentence"] = bestsent
+    return best * (0.6 if unit["kind"] == "about" else 1.0)
 
 
-def best_units(query: str, parent: dict, name_words: set[str] | None = None, n: int = 2, min_score: float = 0.22) -> list[tuple[float, dict]]:
+def best_units(query: str, parent: dict, name_words: set[str] | None = None, n: int = 2, min_score: float = 0.34) -> list[tuple[float, dict]]:
     drop = {_stem(w) for w in (name_words or set())}
     qt = [w for w in toks(query) if w not in drop]
-    scored = sorted(((_score(qt, u), u) for u in units(parent)), key=lambda x: -x[0])
-    return [(s, u) for s, u in scored[:n] if s >= min_score]
+    us = units(parent)
+    present: set[str] = set()                                       # only words the property's own text can speak to count
+    for u in us:
+        present |= set(toks(u["text"])) | set(toks(u["q"]))
+    qt = [w for w in qt if _hit(w, present)]
+    scored = sorted(((_score(qt, u), u) for u in us), key=lambda x: -x[0])
+    out = []
+    for s, u in scored[:n]:
+        if s >= min_score:
+            u["focus"] = focus(u, qt)
+            out.append((s, u))
+    return out
+
+
+def focus(unit: dict, qt: list[str], max_words: int = 60) -> str:
+    """FAQ answers whole; prose as its best sentence plus the next one when it still fits."""
+    if unit["kind"] in ("faq", "amenities", "why_invest", "key_features"):
+        return unit["text"]
+    sents = _sentences(unit["text"])
+    best = unit.get("focus_sentence") or (sents[0] if sents else unit["text"])
+    out = [best]
+    if best in sents:
+        k = sents.index(best)
+        if k + 1 < len(sents) and len((best + " " + sents[k + 1]).split()) <= max_words:
+            out.append(sents[k + 1])
+    return " ".join(out)
 
 
 def name_words(parent: dict) -> set[str]:
@@ -137,3 +184,8 @@ def snippet(text: str, query: str, words: int = 28) -> str:
     best = max(sents, key=lambda x: (sum(1 for t in set(toks(x)) if _prefix_in(t, qt)) * 2 + len(exp & set(toks(x)))), default=text)
     ws = best.split()
     return " ".join(ws[:words]) + (" …" if len(ws) > words else "")
+
+
+AMEN_WORDS = {_stem(w) for w in """golf pool swimming spa gym fitness sauna steam jacuzzi beach cinema theatre kid child children play playground nursery
+school tennis padel squash yoga pilates concierge security guard restaurant cafe lounge clubhouse marina yacht helipad garden park trail
+hiking cycling elevator lift parking valet wellness massage retail shopping clinic mosque kindergarten chess gaming""".split()}

@@ -232,3 +232,12 @@ def test_question_first_answers():
 def test_suggestions_follow_the_answer():
     ans = graph.run("When is The Astera expected to be completed?", use_llm=False)["answer"]
     assert ans.index("December 2028") < ans.index("Related:")
+
+
+def test_visitor_questions_get_the_specific_answer_first():
+    lead = lambda q: graph.run(q, use_llm=False)["answer"].split("\n\n")[0]                        # noqa: E731
+    assert "25 minutes" in lead("How far is Trump Cliff Villas from the airport?")
+    assert lead("Does Coastal Investment Villas have 3-bedroom homes?").startswith("Yes")
+    assert lead("Can I get a 5-bedroom home at Coastal Investment Villas?").startswith("No")        # a named project is never swapped for another
+    assert "not published" in lead("What is the price of Neptune?")                                  # an investment threshold ("SAR 4M+") is not a price
+    assert "2028" in lead("When can I expect to move into The Astera?")

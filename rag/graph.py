@@ -19,6 +19,7 @@ from .corpus import load_parents
 from .filters import Filters
 from .llm import LLMUnavailable, get_llm
 from .parser import Parsed, get_vocab, parse
+from .answer import _stem
 from .store import get_store, group_by_record
 
 MAX_RECORDS = 8           # returned to the UI
@@ -97,7 +98,7 @@ SORT_DESC = re.compile(r"most expensive|highest price|priciest|largest|biggest|m
 
 
 TOPICS = {
-    "invest": r"invest|\broi\b|returns?\b|yield|worth (it|buying)|why (buy|invest)|residen(cy|ce visa)|visa|tax|capital gain|appreciat|rental income|profit",
+    "invest": r"invest|growth|grow\b|rental|rent out|income|\broi\b|returns?\b|yield|worth (it|buying)|why (buy|invest)|residen(cy|ce visa)|visa|tax|capital gain|appreciat|rental income|profit",
     "amenities": r"amenit|facilit|pool|gym|\bspa\b|club ?house|features?\b|lifestyle|kids|play ?area|what does .* (have|offer)|offer\?",
     "location": r"\bwhere\b|locat|nearby|\bnear\b|distance|minutes|airport|beach|school|\bmall\b|\bmap\b",
     "gallery": r"photo|picture|image|gallery|look like|\bpics?\b|show me",
@@ -195,6 +196,8 @@ def node_retrieve(state: RAGState) -> RAGState:
     pids = parsed.get("project_ids") or []
     if pids:
         hits = store.search(q, f.model_copy(update={"parent_ids": pids}), k)
+        if not hits and not f.is_empty():                           # "a 5-bedroom home at X": X exists even if it has no 5-bedroom unit
+            hits = store.search(q, Filters(parent_ids=pids), k)
         if parsed.get("intent") == "project_info" or not hits:
             general = store.search(q, f, 15)
             seen = {h["id"] for h in hits}
@@ -337,16 +340,32 @@ def _where(m: dict) -> str:
     return ", ".join(dict.fromkeys(x for x in (m.get("district"), m.get("community"), m.get("zone"), m.get("city"), m.get("country")) if x))
 
 
+NOT_AMENITY = set("unit type size locate location price cost international buyer own property residence apartment villa floor room all hotel suite".split())
+INVEST_GENERIC = set("invest investment good worth why reason should buy make benefit thinking consider interested".split())
+INVEST_GENERIC |= {_stem(w) for w in INVEST_GENERIC}
 SEARCHY = re.compile(r"villa|apartment|home|house|propert\w*|townhouse|penthouse|residence|unit|flat|sale|buy|mansion|plot|land|hotel|room")
 GENERIC = set("amenity amenitie facility facilitie offer lifestyle feature have come available there include included provide".split())
-STATUS_Q = re.compile(r"\b(completed?|under construction|status|ready|built|finished|sold|handover|hand over|delivery)\b", re.I)
+GENERIC |= {_stem(w) for w in GENERIC} | {"featur", "facilit", "amenit"}
+STATUS_Q = re.compile(r"\b(completed?|under construction|status|ready|built|finished|sold|handover|hand over|delivery|still available|still buy|still for sale|can i (still )?buy|move in|move into|moving in)\b", re.I)
 LOC_Q = re.compile(r"\b(where|locat\w*|which (area|country|city|emirate|district)|what (country|city)|country|city|address|situated|neighbou?rhood|district)\b", re.I)
-UNIT_Q = re.compile(r"\b(unit|units|types?|bedrooms?|sizes?|configurations?|layouts?|apartments?|villas?|residences)\b", re.I)
+UNIT_Q = re.compile(r"\b(unit|units|types?|bedrooms?|sizes?|big|large|configurations?|layouts?|apartments?|villas?|residences)\b", re.I)
+
+
+_AMEN_VOCAB: set[str] | None = None
+
+
+def _amen_vocab(parents: dict) -> set[str]:
+    """Every (stemmed) word that appears in any development's amenity list — what counts as "asking about an amenity"."""
+    global _AMEN_VOCAB
+    if _AMEN_VOCAB is None:
+        from .answer import toks
+        _AMEN_VOCAB = {t for p in parents.values() for a in ((p.get("rich") or {}).get("amenities") or []) for t in toks(a) if len(t) >= 3}
+    return _AMEN_VOCAB
 
 
 def _direct_answer(q: str, p: dict, m: dict, topics: list[str], named: bool) -> str | None:
     """The passage that answers the question, cited to [1]; None when the question is a property search."""
-    from .answer import PRICE_Q, _stem, best_units, name_words, toks, units
+    from .answer import PRICE_Q, SYN, _stem, best_units, name_words, toks, units
     title = p.get("title") or m.get("title")
     rich = p.get("rich") or {}
     asked = re.match(r"\s*(what|which|when|where|why|how|is|are|does|do|can|who|will)\b|\?\s*$", q, re.I) or any(t != "faq" for t in topics)
@@ -370,8 +389,8 @@ def _direct_answer(q: str, p: dict, m: dict, topics: list[str], named: bool) -> 
         qs = re.sub(r"\b(" + "|".join(words) + r")\b", " ", q, flags=re.I) if words else q
     if named:
         topics = detect_topics(qs)                                   # a project called "Coastal Investment Villas" is not an investment question
-    hits = best_units(q, p, nw, n=2, min_score=0.22 if named else 0.5)
-    hits = [h for i, h in enumerate(hits) if i == 0 or h[0] >= 0.5]
+    hits = best_units(q, p, nw, n=2, min_score=0.34 if named else 0.6)
+    hits = [h for i, h in enumerate(hits) if i == 0 or h[0] >= 0.6]
     parts: list[str] = []
 
     def cut(t: str, n: int = 110) -> str:
@@ -379,34 +398,53 @@ def _direct_answer(q: str, p: dict, m: dict, topics: list[str], named: bool) -> 
         return " ".join(w[:n]) + (" …" if len(w) > n else "")
 
     # --- aspect-specific leads (structured facts first, then the best passage)
-    if m.get("partner") and re.search(r"\b(designed?|designer|partner|brand|collaborat\w*|interiors?|created|made by)\b", qs, re.I) and "invest" not in topics:
+    bm = re.search(r"\b(\d{1,2})\s*[- ]?\s*(?:bed|bedroom|br)s?\b", qs, re.I) if m.get("bedrooms_min") is not None else None
+    if bm and m.get("record_kind") in ("development_project", "one_of_one"):
+        n, lo = int(bm.group(1)), int(m["bedrooms_min"])
+        hi = int(m.get("bedrooms_max") or lo)
+        span = f"{lo}" if lo == hi else f"{lo}–{hi}"
+        kinds = " and ".join(t.replace("_", " ") for t in (m.get("property_types") or [])[:2]) or "residences"
+        parts.append((f"Yes — **{title}** has {n}-bedroom {kinds}. " if lo <= n <= hi else f"No — **{title}** does not have {n}-bedroom {kinds}. ")
+                     + f"Its {kinds} have {span} {'bedroom' if lo == hi == 1 else 'bedrooms'}. [1]")
+        hits = [h for h in hits if h[1]["kind"] == "faq"][:1]
+    elif m.get("partner") and re.search(r"\b(designed?|designer|partner|brand|collaborat\w*|interiors?|created|made by)\b", qs, re.I) and "invest" not in topics:
         parts.append(f"**{title}** is created in partnership with {m['partner']}. [1]")
         hits = hits[:1]
     elif STATUS_Q.search(qs) and m.get("status") and m.get("record_kind") in ("development_project", "one_of_one"):
-        faq = [h for h in hits if h[1]["kind"] == "faq" and h[0] >= 0.3][:1]
-        if not faq:                                                  # no FAQ states the timeline: give the recorded status
+        faq = next((u for u in units(p) if u["kind"] == "faq" and re.search(r"complet|handover|deliver|ready|open|launch|sold", u["q"], re.I)), None)
+        if faq:                                                      # the developer's own answer carries the date
+            parts.append(cut(faq["text"]) + " [1]")
+            hits = []
+        else:
             parts.append(f"**{title}** is {m['status'].replace('_', ' ')}. [1]")
-        hits = faq
+            hits = []
     if parts:
         pass
     elif "invest" in topics and (rich.get("why_invest") or {}).get("bullets"):
-        parts.append("\n".join(f"- {b.rstrip('.;')}" for b in rich["why_invest"]["bullets"][:6]) + " [1]")
+        from .answer import _score
+        bullets = rich["why_invest"]["bullets"]
+        kt = [w for w in toks(qs) if w not in INVEST_GENERIC and w not in GENERIC]
+        ranked = sorted(((_score(kt, {"kind": "why_invest", "q": "why invest", "text": b}), b) for b in bullets), key=lambda x: -x[0]) if kt else []
+        if ranked and ranked[0][0] >= 0.25:                          # a specific question (visa? tax? yield?): the bullets that answer it
+            parts.append("\n".join(f"- {b.rstrip('.;')}" for s_, b in ranked[:2] if s_ >= 0.25) + " [1]")
+        else:
+            parts.append("\n".join(f"- {b.rstrip('.;')}" for b in bullets[:6]) + " [1]")
         return "\n\n".join(parts)
     amen = rich.get("amenities") or m.get("amenities") or []
-    qt = [w for w in toks(qs) if w not in GENERIC and (len(w) >= 4 or w in ("spa", "gym"))]
-    if STATUS_Q.search(qs):
-        qt = []
-    match = [a for a in amen if any(any(t == w or (len(w) >= 4 and t.startswith(w)) for t in toks(a)) for w in qt)]
+    from .answer import AMEN_WORDS
+    qt = [w for w in toks(qs) if w in AMEN_WORDS or {_stem(x) for x in SYN.get(w, ())} & AMEN_WORDS and w not in NOT_AMENITY]
+    if STATUS_Q.search(qs) or LOC_Q.search(qs) or UNIT_Q.search(qs) or PRICE_Q.search(qs):
+        qt = []                                                      # a status / location / unit / price question, not an amenity one
+    match = [a for a in amen if any(any(t == w or t in {_stem(x) for x in SYN.get(w, ())} or (len(w) >= 4 and t.startswith(w)) for t in toks(a)) for w in qt)]
     yesno = re.match(r"\s*(does|do|is|are|can|has)\b", q, re.I)
     if parts:
         pass
-    elif amen and ("amenities" in topics or (match and (yesno or not re.match(r"\s*(what|when|where|why|how|who|which|will)\b", q, re.I)))):
+    elif amen and (("amenities" in topics and not qt) or (qt and (match or yesno))):
         alist = ", ".join(a.rstrip(".") for a in amen[:30])
-        if qt and match and yesno:
-            return f"Yes — **{title}** has {', '.join(a.rstrip('.') for a in match[:4])}. [1]\n\nAmenities include {alist}. [1]"
-        if qt and not match and re.match(r"\s*(does|do|is|are|can|has)\b", q, re.I):
-            return f"I don't see {' / '.join(qt[:2])} listed among **{title}**'s amenities. [1]\n\nAmenities include {alist}. [1]"
-        return f"Amenities include {alist}. [1]"
+        if match:
+            lead = ("Yes — " if yesno or re.search(r"\b(can i|is there|does|do|have|has)\b", qs, re.I) else "") + f"**{title}** has {', '.join(a.rstrip('.') for a in match[:4])}. [1]"
+            return f"{lead}\n\nAmenities include {alist}. [1]"
+        return f"I don't see {' / '.join(qt[:2])} listed among **{title}**'s amenities. [1]\n\nAmenities include {alist}. [1]"
     if parts:
         pass
     elif LOC_Q.search(qs) and not re.search(r"\b(distance|how far|minutes|airport)\b", qs, re.I):
@@ -419,15 +457,15 @@ def _direct_answer(q: str, p: dict, m: dict, topics: list[str], named: bool) -> 
         return "\n\n".join(parts)
     elif PRICE_Q.search(qs) and m.get("record_kind") in ("development_project", "one_of_one", "unit_listing"):
         pass
-    elif UNIT_Q.search(qs) and re.match(r"\s*(what|which|how many|are there)\b", q, re.I) and m.get("record_kind") in ("development_project", "one_of_one"):
+    elif UNIT_Q.search(qs) and re.match(r"\s*(what|which|how many|how big|how large|are there)\b", q, re.I) and m.get("record_kind") in ("development_project", "one_of_one"):
         d = describe(m, f"**{title}**")
-        parts.append(re.sub(r"[ ,.]*\[1\]$", "", d.split(" with ")[0]).rstrip(" ,.") + ". [1]")
+        parts.append(re.split(r"(?<=\.)\s", d)[0].rstrip(" ,") + " [1]")
         for s_, u in hits[:1]:
-            if u["kind"] != "about" or len(parts) < 2:
-                parts.append(cut(u["text"], 80) + " [1]")
+            if u["kind"] != "about":
+                parts.append(cut(u.get("focus") or u["text"], 80) + " [1]")
         return "\n\n".join(parts)
     if not parts and PRICE_Q.search(qs) and m.get("record_kind") in ("development_project", "one_of_one", "unit_listing"):
-        priced = next((u for s_, u in hits if re.search(r"\b(AED|USD|SAR|GBP|EUR)\s?[\d,]+|[\d,]+\s?(million|AED|USD|SAR)", u["text"])), None)
+        priced = next((u for s_, u in hits if u["kind"] == "faq" and re.search(r"price|cost|starting|from", u["q"], re.I) and re.search(r"\b(AED|USD|SAR|GBP|EUR)\s?[\d,]+|[\d,]+\s?(million|AED|USD|SAR)", u["text"])), None)
         if m.get("price_published"):
             parts.append(f"**{title}** is listed at {_fmt_money(m.get('price_amount'), m.get('currency'))}. [1]")
         elif not priced:
@@ -437,10 +475,13 @@ def _direct_answer(q: str, p: dict, m: dict, topics: list[str], named: bool) -> 
         # "What is X?" — every content word was the name: use the closest FAQ or the overview
         us = units(p)
         faq = next((u for u in us if u["kind"] == "faq" and re.search(r"\bwhat (is|are)\b", u["q"], re.I)), None) or next((u for u in us if u["kind"] == "about"), None)
+        if faq:
+            faq["focus"] = faq["text"] if faq["kind"] == "faq" else " ".join(faq["text"].split()[:70])
         hits = [(1.0, faq)] if faq else []
     for s_, u in hits:
-        if cut(u["text"]) not in " ".join(parts):
-            parts.append(cut(u["text"]) + " [1]")
+        txt = u.get("focus") or u["text"]
+        if cut(txt) not in " ".join(parts):
+            parts.append(cut(txt) + " [1]")
         if len(parts) >= 2:
             break
     if not parts and named:                                          # named project but nothing specific: describe it
@@ -493,7 +534,7 @@ def template_answer(state: RAGState) -> str:
             am = [a for a in ((p.get("rich") or {}).get("amenities") or []) if kws and all(w in toks(a) or any(len(w) >= 4 and t.startswith(w) for t in toks(a)) for w in kws)]
             why = ("includes " + ", ".join(x.rstrip(".") for x in am[:3])) if am else None
         if ask and not why:
-            bu = best_units(state.get("query", ""), p, name_words(p), n=1, min_score=0.3)
+            bu = best_units(state.get("query", ""), p, name_words(p), n=1, min_score=0.5)
             why = snippet(bu[0][1]["text"], state.get("query", "")) if bu else None
         lines.append(f"- **{p.get('title') or m.get('title')}**: {why or describe(m, compact=True)} [{i}]")
     return "\n".join(lines)
@@ -584,7 +625,7 @@ def build_graph():
 _GRAPH = None
 
 
-FAQ_TOPIC = {"invest": r"invest|return|yield|rent|visa|residen|tax|roi|profit|freehold|own",
+FAQ_TOPIC = {"invest": r"invest|growth|grow\b|rental|rent out|income|return|yield|rent|visa|residen|tax|roi|profit|freehold|own",
              "payment": r"pay|price|cost|instal|handover|deposit|plan|mortgage|financ",
              "location": r"where|locat|near|distance|airport|beach|minutes|access"}
 
