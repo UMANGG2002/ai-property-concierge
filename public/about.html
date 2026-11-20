@@ -232,7 +232,7 @@
         <div class="kpi"><div class="k">API</div><div class="v sm">FastAPI</div><div class="s">Chat, search, property detail, chunks, stats and evaluation endpoints, with a cache and a rate limit.</div></div>
         <div class="kpi"><div class="k">Configuration</div><div class="v sm">3 variables</div><div class="s"><code>UPSTASH_VECTOR_REST_URL</code>, <code>UPSTASH_VECTOR_REST_TOKEN</code>, <code>OPENROUTER_API_KEY</code></div></div>
       </div>
-      <p class="muted small" style="margin-top:14px">Ingestion: <code>rag/build.py</code> detects the index type and uploads each chunk's text with its metadata. Upserts are keyed by chunk ID and content hash, so re-running only changes what changed.</p>
+      <p class="muted small" style="margin-top:14px">Ingestion: <code>build_index.py</code> detects the index type and uploads each chunk's text with its metadata. Upserts are keyed by chunk ID and content hash, so re-running only changes what changed.</p>
     </section>
 
     <!-- 06 -->
@@ -291,7 +291,7 @@
           <li><span class="ic-dot"></span><span><b>FAQ questions reuse the FAQ's own wording</b>, which makes them easy for retrieval. Real users paraphrase.</span></li>
           <li><span class="ic-dot"></span><span><b>Small samples.</b> Some metrics rest on few questions: behaviour on <span id="n-beh">4</span>, parse accuracy on <span id="n-parse">46</span>. Each score shows its sample size and a 95% confidence lower bound (Wilson).</span></li>
           <li><span class="ic-dot"></span><span><b>Run conditions matter.</b> <span id="run-cond">The stored report was produced with the configuration shown above.</span> Answer checks are substring matches, and nothing here is human-labelled.</span></li>
-          <li><span class="ic-dot"></span><span><b>Not measured yet:</b> paraphrased and multi-intent questions, answer helpfulness rated by people, and Upstash or LLM latency under load. Run <code>eval.run_eval --llm --judge</code> for model-graded faithfulness.</span></li>
+          <li><span class="ic-dot"></span><span><b>Not measured yet:</b> paraphrased and multi-intent questions, answer helpfulness rated by people, and Upstash or LLM latency under load. Run <code>evaluate.py --llm --judge</code> for model-graded faithfulness.</span></li>
         </ul>
       </div>
       <div class="kpis" id="bench-kpis" style="margin-top:20px"></div>

@@ -4,16 +4,17 @@ Per item:   parse accuracy, Hit@1/3/5, MRR, Recall@k, Precision@k (filter precis
             intent / relaxation behaviour, answer checks (must / must-not contain), grounding (unsupported numbers,
             citations), optional LLM-judge faithfulness/relevance/completeness (1-5), and stage latencies.
 Aggregates: per category and overall, with pass/fail gates.
-Outputs:    eval/eval_report.json (read by the UI and /api/eval) and eval/eval_report.md.
+Outputs:    data/reports/eval_report.json, eval_results.csv, eval_report.md, and api/eval_report.json (for the UI).
 
-    uv run python -m eval.run_eval                      # retrieval + behaviour, template answers (fast, free, no key)
-    uv run python -m eval.run_eval --llm                # + real answers from OpenRouter
-    uv run python -m eval.run_eval --llm --judge        # + LLM-as-judge scores
-    uv run python -m eval.run_eval --category wasalt_list --limit 10
+    uv run python evaluate.py                      # retrieval + behaviour, template answers (fast, free, no key)
+    uv run python evaluate.py --llm                # + real answers from OpenRouter
+    uv run python evaluate.py --llm --judge        # + LLM-as-judge scores
+    uv run python evaluate.py --category wasalt_list --limit 10
 """
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import math
 import statistics
@@ -174,8 +175,6 @@ def to_markdown(rep: dict) -> str:
 
 
 def main(argv=None) -> int:
-    from rag.env import load_env
-    load_env()
     ap = argparse.ArgumentParser()
     ap.add_argument("--golden", default="eval/golden.jsonl")
     ap.add_argument("--llm", action="store_true", help="generate real answers with OpenRouter")
@@ -183,7 +182,7 @@ def main(argv=None) -> int:
     ap.add_argument("--category", action="append", default=[])
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--sleep", type=float, default=0.0, help="seconds between items (free-tier rate limits)")
-    ap.add_argument("--out", default="eval")
+    ap.add_argument("--out", default="data/reports")
     ap.add_argument("--strict", action="store_true", help="exit 1 if any gate fails")
     a = ap.parse_args(argv)
     items = load_golden(a.golden)
@@ -210,8 +209,17 @@ def main(argv=None) -> int:
     rep["gates_passed"] = {m: (summary["overall"].get(m) is not None and summary["overall"][m] >= th) for m, th in GATES.items()}
     outd = Path(a.out)
     outd.mkdir(parents=True, exist_ok=True)
-    (outd / "eval_report.json").write_text(json.dumps(rep, ensure_ascii=False), encoding="utf-8")
+    (outd / "eval_report.json").write_text(json.dumps(rep, ensure_ascii=False, indent=2), encoding="utf-8")
     (outd / "eval_report.md").write_text(to_markdown(rep), encoding="utf-8")
+    keys = sorted({k for r in rows for k in r})
+    first = ["id", "category", "query", "answer_mode", "returned", "expected"]
+    with open(outd / "eval_results.csv", "w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=first + [k for k in keys if k not in first])
+        w.writeheader()
+        w.writerows(rows)
+    Path("api").mkdir(exist_ok=True)
+    (Path("api") / "eval_report.json").write_text(json.dumps({k: v for k, v in rep.items() if k != "results"} |
+                                                             {"results": rows}, ensure_ascii=False), encoding="utf-8")
     o = summary["overall"]
     print(f"\n{o['n']} items in {rep['seconds']}s · store={rep['store']} · answers={rep['answer_source']}")
     for m in ("hit@1", "hit@5", "mrr", "recall@k", "precision@k", "ndcg@k", "parse_accuracy", "behaviour_pass",

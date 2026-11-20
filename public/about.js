@@ -93,7 +93,7 @@
       return kpi(label, pct(o[k]), `${what} · n = ${n ?? "—"}${lo != null ? ` · 95% ≥ ${pct(lo)}` : ""}`, gate(k)); };
     $("#n-beh").textContent = o.behaviour_pass_n ?? "—"; $("#n-parse").textContent = o.parse_accuracy_n ?? "—";
     const local = String(r.store).includes("bm25") && !String(r.store).includes("upstash");
-    $("#run-cond").innerHTML = `This report was produced with retrieval <b>${esc(r.store)}</b> and <b>${esc(r.answer_source)}</b> answers${local ? ", that is, the bundled BM25 fallback rather than the Upstash hybrid index, and without the LLM. Re-run <code>eval.run_eval</code> with Upstash configured to measure the production path" : ""}.`;
+    $("#run-cond").innerHTML = `This report was produced with retrieval <b>${esc(r.store)}</b> and <b>${esc(r.answer_source)}</b> answers${local ? ", that is, the bundled BM25 fallback rather than the Upstash hybrid index, and without the LLM. Re-run <code>evaluate.py</code> with Upstash configured to measure the production path" : ""}.`;
     $("#bench-kpis").innerHTML = [
       rate("hit@5", "Hit@5", "Correct property in top 5"),
       rate("hit@1", "Hit@1", "Correct property ranked first"),
@@ -115,7 +115,7 @@
       cats.map(([c, a]) => `<tr><td>${esc(c.replace(/_/g, " "))}</td>${cols.map(([k]) => `<td class="num ${cls(k, a[k])}">${a[k] == null ? "—" : k === "n" || k.startsWith("latency") ? a[k] : a[k].toFixed(2)}</td>`).join("")}</tr>`).join("") + "</tbody>";
     const bad = (r.results || []).filter((x) => x["hit@5"] === 0 || x.behaviour_pass === 0 || x.parse_ok === false || x.answer_contains_ok === 0 || (x["precision@k"] != null && x["precision@k"] < 0.75));
     $("#fails").innerHTML = bad.length ? `<ul class="fails">${bad.slice(0, 30).map((x) => `<li><code>${esc(x.id)}</code> ${esc(x.query)}</li>`).join("")}</ul>` : `<p class="muted" style="margin:0">None. Every golden question passes its checks.</p>`;
-  }).catch(() => { $("#bench-meta").innerHTML = "No evaluation report yet. Run <code>uv run python -m eval.run_eval</code>."; });
+  }).catch(() => { $("#bench-meta").innerHTML = "No evaluation report yet. Run <code>uv run python evaluate.py</code>."; });
 
   if (location.hash) setTimeout(() => document.querySelector(location.hash)?.scrollIntoView(), 400);
 })();

@@ -26,7 +26,6 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from rag.env import load_env  # noqa: E402
-from rag.paths import CORPUS  # noqa: E402
 
 load_env()
 
@@ -151,7 +150,7 @@ def property_detail(record_id: str):
 
 @app.get("/api/stats")
 def stats():
-    path = CORPUS / "corpus_report.json"
+    path = ROOT / "data" / "corpus" / "corpus_report.json"
     if not path.exists():
         raise HTTPException(status_code=404, detail="corpus report not built")
     rep = json.loads(path.read_text(encoding="utf-8"))
@@ -165,7 +164,7 @@ _CHUNKS: list | None = None
 def _chunks() -> list:
     global _CHUNKS
     if _CHUNKS is None:
-        path = CORPUS / "chunks.jsonl"
+        path = ROOT / "data" / "corpus" / "chunks.jsonl"
         _CHUNKS = [json.loads(l) for l in path.read_text(encoding="utf-8").splitlines() if l.strip()] if path.exists() else []
     return _CHUNKS
 
@@ -197,9 +196,9 @@ def chunks(record: str | None = Query(None, max_length=200)):
 
 @app.get("/api/eval")
 def eval_report(full: bool = Query(False)):
-    path = ROOT / "eval" / "eval_report.json"
+    path = ROOT / "api" / "eval_report.json"
     if not path.exists():
-        raise HTTPException(status_code=404, detail="no evaluation report yet; run `uv run python -m eval.run_eval`")
+        raise HTTPException(status_code=404, detail="no evaluation report yet; run `uv run python evaluate.py`")
     rep = json.loads(path.read_text(encoding="utf-8"))
     if not full:
         rep.pop("results", None)

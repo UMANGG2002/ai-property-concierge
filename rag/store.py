@@ -88,7 +88,7 @@ def window_vectors(chunks: list[dict]) -> list[dict]:
 
 
 class LocalDense:
-    """Brute-force cosine over precomputed window vectors (rag/index/vectors.npy). 2k x 384 floats: ~1 ms/query."""
+    """Brute-force cosine over precomputed window vectors (data/corpus/vectors.npy). 2k x 384 floats: ~1 ms/query."""
     name = "local-dense"
 
     def __init__(self, vectors_path=None, ids_path=None, chunks_by_id: dict | None = None):

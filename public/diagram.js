@@ -67,8 +67,8 @@
       ["Sources", "Raw data", ["DarGlobal · 74 records", "Wasalt · 80-row CSV", "CMS JSON + gallery URLs"]],
       ["Unified schema", "rag/schema.py · sources/", ["One record shape", "PII removed", "Duplicates collapsed"]],
       ["Chunking", "rag/corpus.py", ["905 chunks · 154 parents", "Sections · FAQs · listings", "Validated counts"]],
-      ["Corpus", "rag/index/", ["chunks.jsonl", "parents.json → API cards", "golden.jsonl (165 Qs)"]],
-      ["rag/build.py", "Ingest", ["Detects index type", "Uploads chunk text", "Idempotent by hash"]],
+      ["Corpus", "data/corpus/", ["chunks.jsonl", "parents.json → API cards", "golden.jsonl (165 Qs)"]],
+      ["build_index.py", "Ingest", ["Detects index type", "Uploads chunk text", "Idempotent by hash"]],
     ];
     off.forEach(([t, s, l], i) => P.push(box(ox(i), OY, OW, OH, { title: t, sub: s, lines: l, strong: i === 4 })));
     for (let i = 0; i < 4; i++) P.push(path(`M${ox(i) + OW},${OY + 50} H${ox(i + 1) - 2}`));
@@ -76,7 +76,7 @@
     const bx = ox(4) + OW;
     P.push(path(`M${bx},${OY + 50} H${W - 16} V146 H${SX + SW + 2}`, { label: "upsert", lx: W - 22, ly: 540, anchor: "end" }));
     // eval reads API
-    P.push(`<text class="d-foot" x="20" y="${H - 22}">Evaluation: eval.run_eval replays the 165 golden questions through the same pipeline → eval/eval_report.json → /api/eval.</text>`);
+    P.push(`<text class="d-foot" x="20" y="${H - 22}">Evaluation: evaluate.py replays the 165 golden questions through the same pipeline → api/eval_report.json → /api/eval.</text>`);
 
     return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Component architecture of one chat request" xmlns="http://www.w3.org/2000/svg">
       <defs>

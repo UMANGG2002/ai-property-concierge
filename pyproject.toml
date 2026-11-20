@@ -1,19 +1,22 @@
 [project]
-name = "property-concierge"
+name = "ai-chat-bot"
 version = "1.0.0"
-description = "Grounded RAG assistant over DarGlobal developments and Wasalt Riyadh listings"
+description = "Concierge: a grounded RAG assistant over DarGlobal developments and Wasalt Riyadh listings"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115",
-    "uvicorn>=0.30",
     "langgraph>=0.4",
     "pydantic>=2.7",
     "upstash-vector>=0.8",
     "httpx>=0.27",
 ]
 
+[project.optional-dependencies]
+# self-hosted multilingual embeddings, only for a custom (non-hosted) Upstash index
+local-embed = ["onnxruntime>=1.18", "tokenizers>=0.19", "numpy>=1.26"]
+
 [dependency-groups]
-dev = ["pytest>=8", "numpy>=1.26"]
+dev = ["pytest>=8", "uvicorn>=0.30", "numpy>=1.26"]
 
 [tool.uv]
 package = false

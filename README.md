@@ -11,19 +11,25 @@ The **Architecture** page in the app tells the whole build story: data collectio
 ## Repository layout
 
 ```
-api/index.py        FastAPI app and static UI host (/api/chat, /api/search, /api/property/{id}, /api/chunks, /api/stats, /api/eval)
-rag/                the RAG system
-  schema.py  parser.py  filters.py  graph.py  llm.py  store.py  embed.py  env.py  paths.py
-  sources/          darglobal.py + sections.py (parent–child chunks), wasalt_csv.py (one chunk per listing)
-  corpus.py         builds rag/index/ and validates the expected 74 + 80 records
-  build.py          CLI: build the corpus and upload it to Upstash   (python -m rag.build)
-  ask.py            CLI: ask a question from the terminal            (python -m rag.ask "...")
-eval/               golden set (165 questions), scorer (python -m eval.run_eval), latest eval_report.json
-public/             the UI: index.html (chat), about.html (the build story and benchmark)
-rag/index/          the built index files the app serves (committed)
-docs/               architecture diagrams and the attribute spec
-data/               local only, git-ignored: raw sources for rebuilding (see below)
-tests/              offline tests
+api/index.py              FastAPI app: /api/chat, /api/search, /api/property/{id}, /api/chunks, /api/stats, /api/eval
+api/eval_report.json      latest benchmark, shown on the Architecture page
+rag/                      the RAG system
+  schema.py               one record schema for both sources
+  sources/darglobal.py    parsed DarGlobal documents → records (parent–child)
+  sources/sections.py     DarGlobal section chunking + parent text
+  sources/wasalt_csv.py   Wasalt CSV → records + one chunk per listing (PII removed)
+  corpus.py               builds data/corpus/, validates the expected 74 + 80 records
+  parser.py               question → filters (type, beds, price, area, location, projects, Arabic)
+  store.py                Upstash hybrid search, bundled BM25 fallback
+  graph.py                LangGraph: parse → retrieve → build_context → generate → verify
+  llm.py                  OpenRouter free-model discovery, rotation and time budget
+eval/                     golden set (165 questions), builder and scorer
+public/                   the UI: index.html (chat), about.html (architecture & benchmark)
+data/                     source data + built corpus (see data/README.md)
+tests/                    offline tests
+build_index.py            build the corpus and upload it to Upstash
+evaluate.py               run the benchmark
+ask.py                    ask a question from the terminal
 ```
 
 ## Run locally
@@ -39,20 +45,11 @@ uv run uvicorn api.index:app --reload --port 8000
 Open http://localhost:8000. With no keys, the app uses the bundled BM25 index and grounded summary answers.
 
 ```bash
-uv run python -m rag.ask "4 bedroom villa in North Riyadh under 3M"
+uv run python ask.py "4 bedroom villa in North Riyadh under 3M"
 uv run pytest -q
-uv run python -m eval.run_eval        # retrieval benchmark → eval/eval_report.json
-uv run python -m eval.run_eval --llm --judge   # also scores LLM answers (needs OPENROUTER_API_KEY)
+uv run python evaluate.py        # retrieval benchmark → api/eval_report.json
+uv run python evaluate.py --llm --judge   # also scores LLM answers (needs OPENROUTER_API_KEY)
 ```
-
-## Run with Docker
-
-```bash
-cp .env.example .env        # add your keys (optional: without them the app uses BM25 and grounded summaries)
-docker compose up --build   # http://localhost:8000
-```
-
-`docker-compose.yml` builds the image from `Dockerfile` and passes `UPSTASH_VECTOR_REST_URL`, `UPSTASH_VECTOR_REST_TOKEN`, `OPENROUTER_API_KEY`, `OPENROUTER_MODELS` and `EVAL_TOKEN` from your `.env`. The same image runs on any host that runs containers (a VM, Fly.io, Render, Railway, Cloud Run): build it, set those variables and expose port 8000. `PORT` is honoured when the platform sets it.
 
 ## Set up Upstash Vector (once)
 
@@ -62,17 +59,17 @@ docker compose up --build   # http://localhost:8000
 3. Upload the 905 chunks. Upstash embeds the text itself, so nothing is embedded on your machine:
 
    ```bash
-   uv run python -m rag.build
+   uv run python build_index.py
    ```
 
    The script detects the index type, uploads each chunk's text and metadata, and prints the vector count. Re-running only updates what changed.
 4. Check it: `uv run python -c "from rag.env import load_env; load_env(); from rag.store import UpstashStore; print(UpstashStore().health())"` should report about 905 vectors.
 
-`rag/build.py` always rebuilds `rag/index/` from the sources first (73 parsed DarGlobal documents + the CSV) and checks it reproduces 74 + 80 records. Add `--no-upload` to rebuild without touching Upstash.
+`build_index.py` always rebuilds `data/corpus/` from the sources first (73 parsed DarGlobal documents + the CSV) and checks it reproduces 74 + 80 records. Add `--no-upload` to rebuild without touching Upstash.
 
 ## Deploy to Vercel
 
-The repository is ready to deploy as is. `public/` is served as static files, and `api/index.py` runs as one Python function with the corpus bundled. `vercel.json` is already configured.
+The repository is ready to deploy as is. `public/` is served as static files, and `api/index.py` runs as one Python function with the corpus bundled. `vercel.json` and `.vercelignore` are already configured.
 
 1. **Push to GitHub**
 
@@ -106,7 +103,7 @@ The repository is ready to deploy as is. `public/` is served as static files, an
    - `https://<your-app>.vercel.app/`: the chat
    - `https://<your-app>.vercel.app/about.html`: the build story and benchmark
 
-Later pushes to `main` redeploy automatically. If you change the data or chunking, run `rag/build.py` locally, commit `rag/index/`, and push.
+Later pushes to `main` redeploy automatically. If you change the data or chunking, run `build_index.py` locally, commit `data/corpus/`, and push.
 
 **Notes**
 - Dependencies are managed only by uv. If your Vercel project doesn't pick up `pyproject.toml`, generate a lock-equivalent file for it with `uv export --no-dev --no-hashes --format requirements-txt -o requirements.txt` and commit it.
@@ -114,11 +111,9 @@ Later pushes to `main` redeploy automatically. If you change the data or chunkin
 - The app's dependencies are FastAPI, LangGraph, Pydantic, upstash-vector and httpx, about 60 MB installed. No embedding model is shipped, because Upstash embeds queries itself.
 - If Upstash is unreachable, search falls back to the bundled BM25 index automatically. If OpenRouter is rate-limited, answers fall back to grounded summaries.
 
-## Data sources and rebuilding
+## Data sources
 
-`data/` is git-ignored: it holds the raw sources and stays on your machine. To rebuild the index, put these there:
-- `data/darglobal/docs/*.json`: 73 DarGlobal pages parsed from each page's CMS payload (collected with Playwright and Chromium, honouring `robots.txt`).
-- `data/darglobal/one_of_one_collections.json`: the 7 One of One residences.
-- `data/wasalt_riyadh_sale.csv`: 80 Wasalt listings extracted with ChatGPT and the TinyFish agent (Wasalt's bot protection blocks automated browsers). Agents' names, phones and emails are removed at build time.
+- **DarGlobal:** 73 pages were collected with Playwright driving a real Chromium. The scraper honoured `robots.txt`, waited 2 seconds between pages, used no stealth and stopped when blocked. Each page's CMS payload (`__NEXT_DATA__`) was parsed into one structured JSON document in `data/darglobal/docs/`. The scraper and HTML parser are not part of this repository: the parsed documents are the source of truth.
+- **Wasalt:** bot protection blocks automated browsers, so 80 Riyadh residential sale listings were extracted with ChatGPT and the TinyFish web agent into `data/wasalt_riyadh_sale.csv`. Agents' names, phones and emails are removed at build time.
 
-Then run `uv run python -m rag.build`. The committed `rag/index/` already contains the result, so running or deploying the app needs none of `data/`.
+Details are in `data/README.md` and on the app's Architecture page.

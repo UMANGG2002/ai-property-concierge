@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-CORPUS = Path(os.environ.get("RAG_CORPUS_DIR") or ROOT / "rag" / "index")
+CORPUS = Path(os.environ.get("RAG_CORPUS_DIR") or ROOT / "data" / "corpus")
 CHUNKS = CORPUS / "chunks.jsonl"
 PARENTS = CORPUS / "parents.json"
 RECORDS = CORPUS / "records.jsonl"
