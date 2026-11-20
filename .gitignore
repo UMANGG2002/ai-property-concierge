@@ -1,0 +1,42 @@
+# secrets and environment
+.env
+.venv/
+.vercel/
+
+# caches, editors, OS
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.idea/
+.vscode/
+.DS_Store
+
+# raw sources and the Wasalt CSV stay local: rebuild the index from them with `python -m rag.build`
+/data/
+
+# no loose text files, models or archives
+*.txt
+*.zip
+*.csv
+models/
+rag/index/vectors.npy
+rag/index/vectors.json
+
+# old pipeline leftovers that may still sit on disk
+/scraper/
+/ingest/
+/scrape.py
+/parse_wasalt.py
+/build_docs.py
+/build_index.py
+/ask.py
+/evaluate.py
+/requirements.txt
+/.vercelignore
+/public/diagrams/
+/api/eval_report.json
+/tests/fixtures/
+/tests/test_scraper.py
+/tests/test_ingest.py
+/tests/test_wasalt_parse.py

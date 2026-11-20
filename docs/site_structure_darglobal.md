@@ -1,0 +1,207 @@
+# darglobal URL structure
+
+Built from 29 saved pages. ✓ = page saved, · = URL known, not saved yet.
+Sub-pages = pages a project links to that are not in the menu. Press/blog articles and shared footer links are listed separately.
+
+## Menu tree (sub-pages shown under the page that links to them)
+- · **Building Communities** — https://darglobal.co.uk
+  - ✓ **AIDA** — https://darglobal.co.uk/landing-page/aida
+    - · _sub-page:_ https://darglobal.co.uk/one-of-one/fendi-casa-azure-oceanfront-villas
+    - · _sub-page:_ https://darglobal.co.uk/aida
+    - · _sub-page:_ https://darglobal.co.uk/aida-rizz-villas
+  - ✓ **Amaya** — https://darglobal.co.uk/amaya/amaya-plots
+    - · _sub-page:_ https://darglobal.co.uk/amaya/padel-living
+  - ✓ **Rayana** — https://darglobal.co.uk/rayana/trump-mansions
+  - · **Tierra Viva** — https://darglobal.co.uk/tierra-viva
+  - ✓ **MAD - Muscat Marine, Art & Digital District** — https://darglobal.co.uk/press/darglobal-art-district-real-estate-mad-muscat-marine-art-digital-district
+- · **Real Estate developments** — https://darglobal.co.uk/projects
+  - · **View all** — https://darglobal.co.uk/projects
+  - ✓ **Spain** — https://darglobal.co.uk/projects/properties-in-spain
+    - · _sub-page:_ https://darglobal.co.uk/d-villas-at-jge
+    - · _sub-page:_ https://darglobal.co.uk/one-of-one/top-of-the-astera
+    - · _sub-page:_ https://darglobal.co.uk/one-of-one/fendi-casa-azure-oceanfront-villas
+    - · _sub-page:_ https://darglobal.co.uk/amaya/padel-living
+    - ✓ **Marea Interiors by Missoni** — https://darglobal.co.uk/marea
+    - · **Tierra Viva, Design inspired by Automobili Lamborghini** — https://darglobal.co.uk/tierra-viva
+    - · **Painite Villas Design Inspired by Automobili Lamborghini** — https://darglobal.co.uk/one-of-one/painite-villas-design-inspired-by-Automobili-Lamborghini
+  - · **United Arab Emirates** — https://darglobal.co.uk/projects/properties-in-uae
+    - · **Trump International Hotel & Tower Dubai** — https://darglobal.co.uk/trump-international-hotel-and-tower-dubai
+    - · **D-Villas At Jumeirah Golf Estates** — https://darglobal.co.uk/dg-villas-at-jge
+    - ✓ **The Astera, Interiors By Aston Martin** — https://darglobal.co.uk/the-astera
+      - · _sub-page:_ https://darglobal.co.uk/one-of-one/top-of-the-astera
+    - · **DG1** — https://darglobal.co.uk/dg1
+    - · **Da Vinci Tower, Interiors by Pagani** — https://darglobal.co.uk/davinci-tower-by-pagani
+    - · **Urban Oasis By Missoni** — https://darglobal.co.uk/urban-oasis-by-missoni
+    - · **W Residences** — https://darglobal.co.uk/w-residences
+    - ✓ **The Pagani Penthouse** — https://darglobal.co.uk/one-of-one/project-pagani
+  - · **Qatar** — https://darglobal.co.uk/projects/properties-in-qatar
+    - · **Les Vagues by Elie Saab** — https://darglobal.co.uk/les-vagues
+    - ✓ **Trump International Simaisma, Qatar** — https://darglobal.co.uk/lp/trump-international-qatar
+  - · **Oman** — https://darglobal.co.uk/projects/properties-in-oman
+    - · **Trump International Hotel** — https://darglobal.co.uk/aida-trump-international-hotel
+    - · **Trump Cliff Villas** — https://darglobal.co.uk/aida-trump-international-cliff-villas
+    - ✓ **Trump Golf Villas** — https://darglobal.co.uk/aida-trump-villas
+    - ✓ **AIDA** — https://darglobal.co.uk/landing-page/aida
+      - · _sub-page:_ https://darglobal.co.uk/one-of-one/fendi-casa-azure-oceanfront-villas
+      - · _sub-page:_ https://darglobal.co.uk/aida
+      - · _sub-page:_ https://darglobal.co.uk/aida-rizz-villas
+    - · **Fairway Villas** — https://darglobal.co.uk/fairway-villas-aida-oman
+    - · **Marriott Residences** — https://darglobal.co.uk/marriott-residences-aida-oman
+    - ✓ **Amour sans detour** — https://darglobal.co.uk/amour-sans-detour
+    - · **Amour sans detour 2** — https://darglobal.co.uk/amour-sans-detour-2
+    - · **The Great Escape** — https://darglobal.co.uk/the-great-escape-1-aida-oman
+    - · **The Great Escape 2** — https://darglobal.co.uk/the-great-escape-2-aida-oman
+    - · **Coastal Investment Villas** — https://darglobal.co.uk/aida-coastal-investment-villas
+    - ✓ **Sunrise Haven** — https://darglobal.co.uk/Sunrise-Haven-Luxury-Villas
+    - · **Nickelodeon Hotels & Resorts** — https://darglobal.co.uk/play-project/nickelodeon
+  - · **United Kingdom** — https://darglobal.co.uk/projects/properties-in-uk
+    - · **The Mulliner** — https://darglobal.co.uk/the-mulliner
+    - · **Albert Hall Mansions** — https://darglobal.co.uk/one-of-one/THE-ALBERT-HALL-MANSION
+  - ✓ **Saudi Arabia** — https://darglobal.co.uk/projects/properties-in-saudi-arabia
+    - · _sub-page:_ https://darglobal.co.uk/d-villas-at-jge
+    - · _sub-page:_ https://darglobal.co.uk/one-of-one/top-of-the-astera
+    - · _sub-page:_ https://darglobal.co.uk/one-of-one/fendi-casa-azure-oceanfront-villas
+    - · _sub-page:_ https://darglobal.co.uk/amaya/padel-living
+    - · **DarGlobal Mansions Interiors by Fendi Casa** — https://darglobal.co.uk/rayana/darglobal-mansions-fendi-casa
+    - ✓ **Trump Mansions** — https://darglobal.co.uk/rayana/trump-mansions
+    - · **Neptune, Interiors by Mouawad** — https://darglobal.co.uk/neptune
+    - · **Trump Tower Jeddah** — https://darglobal.co.uk/trump-tower-jeddah
+    - · **Trump Executive Residences** — https://darglobal.co.uk/trump-plaza/executive-residences
+    - ✓ **Amaya** — https://darglobal.co.uk/amaya/amaya-plots
+      - · _sub-page:_ https://darglobal.co.uk/amaya/padel-living
+    - ✓ **Trump Park Residences** — https://darglobal.co.uk/trump-plaza/park-residences
+-   **Asset Management** (dropdown only)
+  -   **Spain** (dropdown only)
+    -   **Coming Soon** (dropdown only)
+  -   **Qatar** (dropdown only)
+    - ✓ **Trump International Simaisma, Qatar** — https://darglobal.co.uk/lp/trump-international-qatar
+  -   **Oman** (dropdown only)
+    - ✓ **AIDA** — https://darglobal.co.uk/landing-page/aida
+      - · _sub-page:_ https://darglobal.co.uk/one-of-one/fendi-casa-azure-oceanfront-villas
+      - · _sub-page:_ https://darglobal.co.uk/aida
+      - · _sub-page:_ https://darglobal.co.uk/aida-rizz-villas
+    - ✓ **MAD - Muscat Marine, Art & Digital District** — https://darglobal.co.uk/press/darglobal-art-district-real-estate-mad-muscat-marine-art-digital-district
+  -   **Saudi Arabia** (dropdown only)
+    - ✓ **Amaya, Jeddah** — https://darglobal.co.uk/amaya/amaya-plots
+      - · _sub-page:_ https://darglobal.co.uk/amaya/padel-living
+-   **Collaborations** (dropdown only)
+  - ✓ **The Trump Organization** — https://darglobal.co.uk/partners/the-trump-organization
+    - · _sub-page:_ https://darglobal.co.uk/one-of-one/trump-penthouse
+  - ✓ **Lamborghini** — https://darglobal.co.uk/partners/lamborghini
+  - · **Pagani** — https://darglobal.co.uk/partners/pagani
+  - ✓ **Fendi Casa** — https://darglobal.co.uk/partners/fendi-casa
+    - · _sub-page:_ https://darglobal.co.uk/one-of-one/fendi-casa-azure-oceanfront-villas
+  - ✓ **Aston Martin** — https://darglobal.co.uk/partners/aston-martin
+    - · _sub-page:_ https://darglobal.co.uk/one-of-one/top-of-the-astera
+  - · **W Hotels** — https://darglobal.co.uk/partners/w-hotels
+  - ✓ **Missoni** — https://darglobal.co.uk/partners/missoni
+    - · _sub-page:_ https://darglobal.co.uk/Marea
+  - ✓ **Elie Saab** — https://darglobal.co.uk/partners/elie-saab
+  - ✓ **Mouawad** — https://darglobal.co.uk/partners/mouawad
+  - · **Marriott International Residences** — https://darglobal.co.uk/partners/marriott-residences-aida-oman
+  - ✓ **Insignia** — https://darglobal.co.uk/insignia
+  - ✓ **Paramount** — https://darglobal.co.uk/partners/paramount
+- · **Golf** — https://darglobal.co.uk/luxury-golf-communities
+- ✓ **Hospitality** — https://darglobal.co.uk/hospitality
+- · **Commercial** — https://darglobal.co.uk/commercial
+- · **Tokenization** — https://darglobal.co.uk/tokenization
+-   **NEWSROOM** (dropdown only)
+  - · **News** — https://darglobal.co.uk/press
+  - · **blog** — https://darglobal.co.uk/blog
+- · **Investor Relations** — https://darglobal.co.uk/investor
+- · **About Us** — https://darglobal.co.uk/about
+- · **Contact us** — https://darglobal.co.uk/get-in-touch
+-   **Terms and Conditions** (dropdown only)
+  - · **Terms Of Use** — https://darglobal.co.uk/terms-of-uses
+  - · **Privacy Policy** — https://darglobal.co.uk/privacy-policy
+
+## Sub-projects by category (from each page's own project cards)
+
+### AIDA Properties — https://darglobal.co.uk/landing-page/aida
+- **Villas** (8)
+  - ✓ trump golf villas — https://darglobal.co.uk/aida-trump-villas
+  - · trump cliff villas — https://darglobal.co.uk/aida-trump-international-cliff-villas
+  - · Azure Oceanfront Villas Interiors by Fendi Casa — https://darglobal.co.uk/one-of-one/fendi-casa-azure-oceanfront-villas
+  - · COASTAL INVESTMENT VILLAS — https://darglobal.co.uk/aida-coastal-investment-villas
+  - ✓ Sunrise Haven Luxury Villas — https://darglobal.co.uk/Sunrise-Haven-Luxury-Villas
+  - · FAIRWAY VILLAS — https://darglobal.co.uk/fairway-villas-aida-oman
+  - ✓ Amour Sans Detour — https://darglobal.co.uk/amour-sans-detour
+  - · Amour Sans Detour 2 — https://darglobal.co.uk/amour-sans-detour-2
+- **Apartments** (2)
+  - · The Great Escape 2 — https://darglobal.co.uk/the-great-escape-2-aida-oman
+  - · the great escape — https://darglobal.co.uk/the-great-escape-1-aida-oman
+- **Hotel Rooms** (3)
+  - · rooms & suites — https://darglobal.co.uk/aida-trump-international-hotel
+  - · MARRIOTT RESIDENCES — https://darglobal.co.uk/marriott-residences-aida-oman
+  - · Nickelodeon Hotels & Resorts — https://darglobal.co.uk/play-project/nickelodeon
+
+
+## Sub-projects and other pages found outside the menu
+
+- · https://darglobal.co.uk — linked from /, /amaya/amaya-plots, /blog/your-ultimate-guide-to-buying-luxury-villas-in-muscat (shared footer/global link)
+- · https://darglobal.co.uk/Marea — linked from /partners/missoni
+- · https://darglobal.co.uk/aida — linked from /blog/your-ultimate-guide-to-buying-luxury-villas-in-muscat, /landing-page/aida
+- · https://darglobal.co.uk/aida-rizz-villas — linked from /landing-page/aida
+- · https://darglobal.co.uk/amaya/padel-living — linked from /amaya/amaya-plots, /projects/properties-in-saudi-arabia, /projects/properties-in-spain
+- · https://darglobal.co.uk/d-villas-at-jge — linked from /projects/properties-in-saudi-arabia, /projects/properties-in-spain
+- · https://darglobal.co.uk/exclusive-membership — linked from /
+- · https://darglobal.co.uk/one-of-one/fendi-casa-azure-oceanfront-villas — linked from /landing-page/aida, /partners/fendi-casa, /projects/properties-in-saudi-arabia
+- · https://darglobal.co.uk/one-of-one/top-of-the-astera — linked from /partners/aston-martin, /projects/properties-in-saudi-arabia, /projects/properties-in-spain
+- · https://darglobal.co.uk/one-of-one/trump-penthouse — linked from /partners/the-trump-organization
+- · https://darglobal.co.uk/pay-online — linked from /amaya/amaya-plots, /partners/aston-martin, /partners/elie-saab (shared footer/global link)
+- · https://darglobal.co.uk/trump-international-resort-maldives — linked from /hospitality
+- · https://darglobal.co.uk/why-invest — linked from /
+
+## Press / blog articles linked from saved pages (40)
+
+- ✓ https://darglobal.co.uk/blog/discover-the-luxury-and-leisure-of-al-marjan-island-uae
+- ✓ https://darglobal.co.uk/blog/key-factors-driving-the-sale-of-villas-in-oman-unveiling-the-sultanate's-irresistible-allure
+- ✓ https://darglobal.co.uk/blog/spain-and-oman-two-of-the-best-places-to-buy-a-villa-for-lavish-living
+- ✓ https://darglobal.co.uk/blog/your-ultimate-guide-to-buying-luxury-villas-in-muscat
+- · https://darglobal.co.uk/press/Dar%20Global-Kicks-Off-Construction-at-The-Astera-Interiors-by%20Aston-Martin-with-the-Appointment-of-Stromek
+- · https://darglobal.co.uk/press/Dar-Global-advances-construction-at-Tierra-Viva-its-first-European-luxury-development-with-Automobili-Lamborghini
+- · https://darglobal.co.uk/press/Dar-Global-and-The-Trump-Organization-Expand-Collaboration-with-the-Launch-of-SAR-2-Billion-Trump-Tower-to-Tranform-Jeddah-Skyline
+- · https://darglobal.co.uk/press/Dar-Global-sets-a-new-benchmark-in-luxury-hospitality-with-the-launch-of-the-500ml-Trump-International-Oman-in-AIDA
+- · https://darglobal.co.uk/press/LET-IT-RAIN-DIAMONDS-DAR-GLOBAL-AND-MOUAWAD-HIGH-JEWELLERY-HOUSE-UNVEIL-SAR-880-MILLION-LANDMARK-RESIDENTIAL-PROJECT
+- · https://darglobal.co.uk/press/dar-al-arkan-and-qetaifan-projects-unveil-premium-sea-front-residences-with-interiors-designed-by-elie-saab-at-expo-2020-dubai
+- · https://darglobal.co.uk/press/dar-al-arkan-and-qetaifan-projects-unveil-premium-sea-front-residences-with-interiors-designed-by-elie-saab-in-qetaifan-island-north-qatar
+- · https://darglobal.co.uk/press/dar-al-arkan-global-launches-sales-of-the-most-premium-residential-address-in-qatar-les-vagues-by-elie-saab-with-views-of-lusail-skyline-and-the-sea-at-qetaifan-island-north
+- · https://darglobal.co.uk/press/dar-al-arkan-introduces-trump-signature-villas-hotel-and-golf-course-at-its-hilltop-project-aida-in-muscat-oman
+- · https://darglobal.co.uk/press/dar-al-arkan-teams-with-missoni-to-deliver-the-exclusive-urban-oasis-water-front-residential-tower-in-dubai
+- · https://darglobal.co.uk/press/dar-al-arkan-tops-out-its-urban-oasis-by-missoni-residential-tower-in-dubai-at-34-stories
+- · https://darglobal.co.uk/press/dar-global-appoints-gulf-asia-contracting-for-trump-international-hotel-tower-dubai
+- · https://darglobal.co.uk/press/dar-global-awards-sar-338-million-rayana-master-community-infrastructure-contract-compass-bin-omairah-wadi-safar-diriyah-riyadh
+- · https://darglobal.co.uk/press/dar-global-capital-partners-targets-high-value-real-estate-opportunities-dubai
+- · https://darglobal.co.uk/press/dar-global-delivers-66-percent-revenue-growth-hy-2026-portfolio-gdv-reaches-23-billion
+- · https://darglobal.co.uk/press/dar-global-expands-saudi-arabia-portfolio-with-new-jeddah-development-valued-at-sar-1-billion
+- · https://darglobal.co.uk/press/dar-global-introduces-stunning-beach-residence-the-astera-interiors-by-aston-martin
+- · https://darglobal.co.uk/press/dar-global-lamborghini-lounge-porto-cervo-summer
+- · https://darglobal.co.uk/press/dar-global-launches-sales-for-aida-a-one-of-a-kind-mixed-use-gatedcommunity-featuring-trump-golf-course-and-the-ultimate-in-luxurygolf-residential-and-hospitality-experiences-in-muscat-oman-thene
+- · https://darglobal.co.uk/press/dar-global-opens-sales-trump-villas-simaisma-qatar-unprecedented-interest
+- · https://darglobal.co.uk/press/dar-global-trump-organization-launch-trump-hotel-tower-dubai
+- · https://darglobal.co.uk/press/dar-global-trump-organization-successful-launch-trump-international-simaisma-qatar-700-million
+- · https://darglobal.co.uk/press/dar-global-trump-organization-usd-1bn-trump-plaza-jeddah
+- · https://darglobal.co.uk/press/darglobal-announces-partnership-with-aston-martin-to-deliver-stunning-beachfront-residences-in-ras-al-khaimah-united-arab-emirates
+- · https://darglobal.co.uk/press/darglobal-appoints-acc-for-main-works-as-trump-tower-jeddah-rises
+- · https://darglobal.co.uk/press/darglobal-appoints-al-dahlawi-contracting-for-amaya-project-trump-plaza-jeddah
+- · https://darglobal.co.uk/press/darglobal-appoints-ene-construccion-as-main-contractor-for-tierra-viva-luxury-villas
+- · https://darglobal.co.uk/press/darglobal-awards-enabling-works-contract-trump-international-hotel-tower-dubai-edrafor-emirates
+- · https://darglobal.co.uk/press/darglobal-awards-main-contract-astera-aston-martin-gulf-asia
+- · https://darglobal.co.uk/press/darglobal-breaks-ground-on-trump-tower-jeddah
+- · https://darglobal.co.uk/press/darglobal-debuts-nickelodeon-hotels-resorts-oman-in-aida-setting-new-luxury-family-standard
+- · https://darglobal.co.uk/press/darglobal-fendi-casa-announce-azure-oceanfront-villas-oman
+- · https://darglobal.co.uk/press/darglobal-launches-trump-plaza-jeddah-second-collaboration
+- · https://darglobal.co.uk/press/exceptional-luxury-living-redefined-darglobal-and-automobili-lamborghini-present-tierra-viva-villas-in-the-highly-exclusive-benahavis
+- · https://darglobal.co.uk/press/missoni-and-dar-global-launch-residential-development-project-in-southern-spain
+- · https://darglobal.co.uk/press/qatari-diar-darglobal-trump-international-golf-club-villas-simaisma
+
+## Filter / category URLs (8)
+
+- https://darglobal.co.uk/product-category/Sunrise-Haven-Luxury-Villas
+- https://darglobal.co.uk/product-category/aida-trump-villas
+- https://darglobal.co.uk/product-category/amour-sans-detour
+- https://darglobal.co.uk/product-category/marea
+- https://darglobal.co.uk/product-category/the-astera
+- https://darglobal.co.uk/projects/loc-qatar
+- https://darglobal.co.uk/projects/loc-united-arab-emirates
+- https://darglobal.co.uk/projects/loc-united-kingdom

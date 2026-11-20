@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Concierge · Luxury Residences &amp; Riyadh Homes</title>
+  <meta name="description" content="A private property concierge for branded residences and Riyadh homes, with photographs, prices and sources.">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js"></script>
+</head>
+<body data-page="chat">
+  <header class="site-head" id="site-head"></header>
+
+  <main class="chat-main" id="scroller">
+    <section class="hero" id="intro">
+      <div class="hero-media" id="hero-media" aria-hidden="true"></div>
+      <div class="hero-inner">
+        <p class="kicker">Private property concierge</p>
+        <h1>Residences of distinction,<br><em>explained with sources.</em></h1>
+        <p class="hero-sub">Branded developments across the Gulf and Europe, and homes for sale in Riyadh. Ask in English or Arabic.</p>
+        <form class="hero-search" data-composer>
+          <textarea rows="1" maxlength="500" placeholder="A four-bedroom villa by the sea, a penthouse in Dubai…" aria-label="Your question"></textarea>
+          <button type="submit" class="send" aria-label="Ask" data-icon="send"></button>
+        </form>
+        <div class="hero-prompts" id="hero-prompts"></div>
+      </div>
+      <div class="hero-scroll" aria-hidden="true">Explore collections</div>
+    </section>
+
+    <section class="collections" id="collections">
+      <div class="sec-head"><p class="kicker">Signature collections</p><h2>Begin with a residence</h2></div>
+      <div class="coll-grid" id="coll-grid"></div>
+      <div class="coll-stats" id="coll-stats"></div>
+    </section>
+
+    <section class="thread" id="thread" aria-live="polite"></section>
+  </main>
+
+  <footer class="dock" id="dock" hidden>
+    <form class="composer" id="form" data-composer>
+      <textarea id="q" rows="1" maxlength="500" placeholder="Ask a follow-up, or describe what you are looking for…" aria-label="Your question"></textarea>
+      <button class="send" id="send" type="submit" aria-label="Send" data-icon="send"></button>
+    </form>
+    <p class="fine">Information is drawn from published developer and listing data and may change. Please confirm prices and availability before you decide.</p>
+  </footer>
+
+  <!-- residence drawer -->
+  <div class="drawer-scrim" id="drawer-scrim" hidden></div>
+  <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="dr-title" hidden>
+    <button class="drawer-x" type="button" id="dr-close" aria-label="Close" data-icon="x"></button>
+    <div class="drawer-body" id="dr-body"></div>
+    <footer class="drawer-foot" id="dr-foot"></footer>
+  </aside>
+
+  <!-- lightbox -->
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Photo viewer" hidden>
+    <button class="lb-btn x" type="button" aria-label="Close" data-icon="x"></button>
+    <button class="lb-btn l" type="button" aria-label="Previous" data-icon="chevL"></button>
+    <figure><img alt=""><figcaption class="cap"></figcaption></figure>
+    <button class="lb-btn r" type="button" aria-label="Next" data-icon="chevR"></button>
+  </div>
+  <div class="toast" id="toast" role="status" hidden></div>
+
+  <script src="/chat.js"></script>
+</body>
+</html>

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>How it was made · Concierge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js"></script>
+</head>
+<body data-page="about">
+  <header class="site-head" id="site-head"></header>
+
+  <main class="page">
+    <div class="page-hero">
+      <div>
+        <p class="kicker">The making of</p>
+        <h1>From two property websites to one grounded concierge.</h1>
+      </div>
+      <p class="lede">This page tells the build story in order. We explored DarGlobal and Wasalt and collected their data.
+        We decided which attributes every record must carry, chunked the documents for retrieval and indexed them in a hybrid
+        vector database. The pipeline below answers each question from those sources, and the closing section says plainly
+        what the benchmark does and does not prove.</p>
+    </div>
+
+    <nav class="chapters" aria-label="Chapters">
+      <a href="#explore"><span>01</span>Exploring the sources</a>
+      <a href="#collect"><span>02</span>Collecting the data</a>
+      <a href="#attributes"><span>03</span>What every record carries</a>
+      <a href="#chunking"><span>04</span>Chunking strategy</a>
+      <a href="#index"><span>05</span>Index &amp; models</a>
+      <a href="#pipeline"><span>06</span>Answering a question</a>
+      <a href="#experience"><span>07</span>The DarGlobal experience</a>
+      <a href="#benchmark"><span>08</span>Benchmark, honestly</a>
+    </nav>
+
+    <!-- 01 -->
+    <section id="explore">
+      <div class="chapter-head"><p class="kicker">Chapter 01</p><h2>Exploring the sources</h2></div>
+      <div class="story">
+        <div class="story-text">
+          <p><b>DarGlobal, explored by hand first.</b> We walked the site the way a buyer would. Under <i>Building Communities</i> the menu splits into
+            <i>Real Estate developments</i> (by country), <i>Asset Management</i> and <i>Collaborations</i> with brand partners. Before scaling up
+            we took one project, Trump International Hotel &amp; Tower Dubai, as a pilot and wrote down everything its page shows. Then we fetched
+            one project from each menu category, and only after that every project.</p>
+          <p><b>The key discovery.</b> Every DarGlobal page is a Next.js page that ships its full CMS content (Strapi) inside
+            <code>__NEXT_DATA__</code>. That payload is cleaner than the visible HTML: labelled fields, original-resolution images with
+            alt text, FAQ pairs and coordinates. We read it with adapters for the three page layouts the site uses:</p>
+          <ul class="checks">
+            <li><span class="ic-dot"></span><span><b>A</b> · <code>/[slug]</code>, standard project pages</span></li>
+            <li><span class="ic-dot"></span><span><b>B</b> · <code>/rayana/…</code>, <code>/amaya/…</code>, rendered client-side, so there is no visible text at all without the payload</span></li>
+            <li><span class="ic-dot"></span><span><b>C</b> · <code>/landing-page/[slug]</code>, campaign pages such as AIDA</span></li>
+          </ul>
+          <p><b>Wasalt, explored the same way.</b> The site lists rent, sale, auction, commercial, barter, projects and daily rental.
+            We scoped the dataset to <b>residential properties for sale in Riyadh</b>.</p>
+        </div>
+        <aside class="story-card">
+          <h3>Site map used for DarGlobal</h3>
+          <ol class="tree">
+            <li>Building Communities
+              <ol><li>Real Estate developments · per country</li><li>Asset Management · dropdown</li><li>Collaborations · partners</li></ol></li>
+            <li>One of One · collector residences</li>
+            <li>Partners · Trump, Missoni, Elie Saab, Pagani, Aston Martin, Fendi Casa…</li>
+            <li>About, news &amp; articles</li>
+          </ol>
+          <p class="muted small">The menu itself comes from <code>__NEXT_DATA__</code>, so the URL list is the site's own, not guessed.</p>
+        </aside>
+      </div>
+    </section>
+
+    <!-- 02 -->
+    <section id="collect">
+      <div class="chapter-head"><p class="kicker">Chapter 02</p><h2>Collecting the data</h2></div>
+      <div class="two">
+        <div class="panel source-card">
+          <p class="kicker">DarGlobal</p>
+          <h3 class="serif">Playwright with a real Chromium</h3>
+          <ul class="checks">
+            <li><span class="ic-dot"></span><span>A visible Chromium browser driven by Playwright, one page at a time</span></li>
+            <li><span class="ic-dot"></span><span>Scrolls like a reader so lazy galleries and FAQ blocks render</span></li>
+            <li><span class="ic-dot"></span><span>Polite by design: honours <code>robots.txt</code>, 2-second delay, no stealth plugins or spoofing</span></li>
+            <li><span class="ic-dot"></span><span>Stops after 3 blocked pages in a row instead of retrying around protection</span></li>
+            <li><span class="ic-dot"></span><span>Saved HTML goes through one import pipeline that parses <code>__NEXT_DATA__</code></span></li>
+          </ul>
+          <div class="result"><b>73</b> pages → <b>74</b> records (one One of One residence is known only from its collection page)</div>
+        </div>
+        <div class="panel source-card">
+          <p class="kicker">Wasalt</p>
+          <h3 class="serif">ChatGPT with the TinyFish web agent</h3>
+          <ul class="checks">
+            <li><span class="ic-dot"></span><span>Wasalt's bot protection challenges automated browsers after a small request threshold</span></li>
+            <li><span class="ic-dot"></span><span>Playwright and Chromium were stopped, and we chose not to work around the protection</span></li>
+            <li><span class="ic-dot"></span><span>Listings were extracted with ChatGPT using the TinyFish agent into a structured CSV</span></li>
+            <li><span class="ic-dot"></span><span>Each row keeps its provenance: English and Arabic source URLs and extraction time</span></li>
+            <li><span class="ic-dot"></span><span>No gallery images were available in this export, so Wasalt cards show a clean placeholder</span></li>
+          </ul>
+          <div class="result"><b>80</b> Riyadh residential sale listings · one CSV · 10 columns, several holding JSON</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 -->
+    <section id="attributes">
+      <div class="chapter-head"><p class="kicker">Chapter 03</p><h2>What every record carries</h2>
+        <p class="sec-sub">We wrote the must-have list from the pilot page before building at scale. Every record is checked against it at build time.
+          A missing required field is flagged, for example <code>price_not_published</code> or <code>gallery_below_target</code>, rather than silently dropped.</p></div>
+      <div class="two">
+        <div class="table-wrap"><table class="data">
+          <thead><tr><th>DarGlobal project attribute</th><th>Required</th><th class="num">Target</th></tr></thead>
+          <tbody>
+            <tr><td>Title / heading</td><td>Yes</td><td class="num">—</td></tr>
+            <tr><td>Country, city, zone</td><td>Yes</td><td class="num">—</td></tr>
+            <tr><td>About: descriptive text</td><td>Yes</td><td class="num">—</td></tr>
+            <tr><td>Property type · unit type</td><td>Yes</td><td class="num">—</td></tr>
+            <tr><td>Status (ready, under development…)</td><td>Yes</td><td class="num">—</td></tr>
+            <tr><td>Area, sqm (min–max)</td><td>Yes</td><td class="num">—</td></tr>
+            <tr><td>Photo gallery with alt text</td><td>Yes</td><td class="num">10</td></tr>
+            <tr><td>Key features with images</td><td>Optional</td><td class="num">4</td></tr>
+            <tr><td>Amenities</td><td>Yes</td><td class="num">8</td></tr>
+            <tr><td>Why invest: intro + bullets</td><td>Optional</td><td class="num">5</td></tr>
+            <tr><td>Location: text, highlights, lat/lng</td><td>Yes</td><td class="num">2</td></tr>
+            <tr><td>FAQs: every question and answer</td><td>Yes</td><td class="num">8</td></tr>
+            <tr><td>Price (only if published), partner brand, video</td><td>When shown</td><td class="num">—</td></tr>
+          </tbody></table>
+          <p class="table-note">Partner pages carry name, description, related projects, FAQs and articles. Articles carry title, date and body.</p></div>
+        <div class="table-wrap"><table class="data">
+          <thead><tr><th>Wasalt listing field</th><th>From CSV column</th></tr></thead>
+          <tbody>
+            <tr><td>Listing ID · URL · title</td><td><code>Listing ID</code>, <code>Listing URL</code>, <code>Title</code></td></tr>
+            <tr><td>Price, currency, price per sqm</td><td><code>Price</code> (JSON) · computed</td></tr>
+            <tr><td>District, zone, city, country</td><td><code>Location</code> (JSON)</td></tr>
+            <tr><td>Type, usage, bedrooms, built-up area</td><td><code>Property facts</code> (JSON)</td></tr>
+            <tr><td>Age, building year, facade, street</td><td><code>Property facts</code></td></tr>
+            <tr><td>Utilities, fixtures, amenities</td><td><code>Property facts</code></td></tr>
+            <tr><td>REGA ad licence, FAL licence, status, expiry</td><td><code>Property facts</code>, <code>Provenance</code></td></tr>
+            <tr><td>Broker company (agents' names, phones and emails removed)</td><td><code>Property facts</code></td></tr>
+            <tr><td>Description, English and Arabic</td><td><code>English</code> / <code>Arabic description</code></td></tr>
+            <tr><td>Images (none in this export)</td><td><code>Image URLs</code></td></tr>
+          </tbody></table>
+          <p class="table-note">The JSON columns used about 100 different key spellings across rows; they are folded into roughly 35 normalised fields.</p></div>
+      </div>
+      <div class="panel" style="margin-top:20px">
+        <h3>One schema for both sources</h3>
+        <p class="muted" style="margin:0">Both sources map into the same record: <code>id · source · record_kind · title · url · property_types · purpose · price · currency ·
+          price_published · bedrooms_min/max · area_min/max · land_area · country · city · zone · district · status · partner · images · rich{gallery, key_features,
+          amenities, why_invest, faqs, location, licence, video}</code>. The flat fields drive filtering; <code>rich</code> drives the interface.</p>
+      </div>
+    </section>
+
+    <!-- 04 -->
+    <section id="chunking">
+      <div class="chapter-head"><p class="kicker">Chapter 04</p><h2>Chunking strategy</h2>
+        <p class="sec-sub">The two sources have different shapes, so they are chunked differently. All numbers below are read live from the built corpus.</p></div>
+
+      <div class="two">
+        <div class="panel">
+          <p class="kicker">DarGlobal · parent–child</p>
+          <h3 class="serif">Too long to embed whole</h3>
+          <p class="body">A DarGlobal project page runs to a median of <b id="dg-parent">~500</b> words and up to <b id="dg-parent-max">1,200</b>,
+            and mixes facts, lifestyle copy, amenities, investment arguments and a dozen FAQs. Embedded as one vector, a question about the
+            gym would compete with paragraphs about golf courses and payment plans. So each project is split along the page's own sections:</p>
+          <ul class="checks">
+            <li><span class="ic-dot"></span><span><b>Parent</b>: the full record, never embedded. It is stored in <code>parents.json</code> and powers cards, the residence drawer and "tell me about…" answers.</span></li>
+            <li><span class="ic-dot"></span><span><b>Children</b>: one chunk per section: summary, key facts, overview, key features, amenities, why invest, location, gallery, property cards, related projects and <b>one chunk per FAQ</b>.</span></li>
+            <li><span class="ic-dot"></span><span>Every child starts with a breadcrumb such as <code>DarGlobal &gt; Real Estate developments &gt; Spain &gt; Marea &gt; Key facts.</code>, so it reads correctly on its own.</span></li>
+            <li><span class="ic-dot"></span><span>Every child carries its parent's filter metadata (country, type, bedrooms, area, price flag) plus <code>parent_id</code>, <code>chunk_type</code> and a content hash.</span></li>
+          </ul>
+        </div>
+        <div class="panel">
+          <p class="kicker">Wasalt · one listing, one chunk</p>
+          <h3 class="serif">Small enough to stay whole</h3>
+          <p class="body">A Wasalt listing is short: a median of <b id="ws-words">~100</b> words. Splitting it would separate the price from the district and the
+            bedroom count from the licence, which are exactly the facts a buyer combines. So the listing document is its own single child:</p>
+          <ul class="checks">
+            <li><span class="ic-dot"></span><span>Header: title and listing ID</span></li>
+            <li><span class="ic-dot"></span><span>Facts sentence: type, district, zone, city, price, price per sqm, bedrooms, area, facade, age, utilities, licence</span></li>
+            <li><span class="ic-dot"></span><span>The description in <b>English and Arabic</b>, so Arabic questions match Arabic text</span></li>
+            <li><span class="ic-dot"></span><span>Stock lines and personal data removed; the parent record keeps the structured fields for the card</span></li>
+          </ul>
+          <div class="flow-mini"><span>Listing</span><i></i><span>1 chunk</span><i></i><span>Card</span></div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:20px">
+        <h3>How parents and children work at query time</h3>
+        <div class="pc-flow">
+          <div><b>1 · Search children</b><span>Hybrid search runs over the 905 small, focused chunks, with metadata filters applied in the database.</span></div>
+          <div><b>2 · Group by parent</b><span>Hits are grouped by <code>parent_id</code>, so one project's ten FAQs can't fill the whole result list.</span></div>
+          <div><b>3 · Return the parent</b><span>The answer cites the property, and the card and drawer load the parent's full content.</span></div>
+          <div><b>4 · Context from children</b><span>The LLM sees the facts line plus the sections that matched, or the whole parent for "tell me about…".</span></div>
+        </div>
+      </div>
+
+      <div class="kpis" id="chunk-kpis" style="margin-top:20px"></div>
+      <div class="two" style="margin-top:20px">
+        <div class="table-wrap"><table class="data" id="chunk-table"><tbody><tr><td>Loading chunk statistics…</td></tr></tbody></table></div>
+        <div class="panel explorer">
+          <h3>Chunk explorer</h3>
+          <div class="seg" id="ex-pick">
+            <button type="button" data-rec="darglobal:marea" class="on">Marea (DarGlobal)</button>
+            <button type="button" data-rec="darglobal:les-vagues">Les Vagues</button>
+            <button type="button" data-rec="darglobal:one-of-one/fendi-casa-azure-oceanfront-villas">One of One</button>
+            <button type="button" data-rec="wasalt:5972715">Wasalt listing</button>
+          </div>
+          <div id="ex-meta" class="muted small"></div>
+          <div class="ex-list" id="ex-list"></div>
+        </div>
+      </div>
+      <div class="panel note-panel" style="margin-top:20px">
+        <h3>Design notes and known limits</h3>
+        <ul class="checks">
+          <li><span class="ic-dot"></span><span><b>No fixed-size windows.</b> Sections follow the page's own structure, so chunks range from <span id="ck-min">14</span> to <span id="ck-max">343</span> words (median <span id="ck-med">77</span>). Every chunk fits comfortably in <code>text-embedding-3-small</code>'s 8,191-token limit and is embedded whole.</span></li>
+          <li><span class="ic-dot"></span><span><b>FAQs are atomic.</b> One question and its answer per chunk is the most precise unit for "can I…", "when will…" questions.</span></li>
+          <li><span class="ic-dot"></span><span><b>Duplicates collapsed.</b> Byte-identical pages, such as a project served at two URLs, are indexed once and kept as an alias.</span></li>
+          <li><span class="ic-dot"></span><span><b>Limit:</b> about 200 chunks typed <code>other</code> are generic sections from non-property pages (about, policies, partner copy). They are longer and less focused, and they rank below property chunks for property questions.</span></li>
+          <li><span class="ic-dot"></span><span><b>Option:</b> for a self-hosted 128-token model (multilingual MiniLM), long chunks are embedded as overlapping ~90-word windows that repeat the breadcrumb. With Upstash's hosted model this isn't needed.</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 05 -->
+    <section id="index">
+      <div class="chapter-head"><p class="kicker">Chapter 05</p><h2>Index &amp; models</h2></div>
+      <div class="kpis models">
+        <div class="kpi"><div class="k">Vector database</div><div class="v sm">Upstash Vector</div><div class="s">Hybrid index, serverless REST, metadata filters. Free tier: 10k queries and 10k updates a day.</div></div>
+        <div class="kpi"><div class="k">Dense embedding</div><div class="v sm">text-embedding-3-small</div><div class="s">OpenAI, 1,536 dimensions, hosted by Upstash. We upload text and Upstash embeds it, so no model ships with the app.</div></div>
+        <div class="kpi"><div class="k">Sparse retrieval</div><div class="v sm">BM25</div><div class="s">Scored inside Upstash on the same chunks; exact names, numbers and Arabic words match reliably.</div></div>
+        <div class="kpi"><div class="k">Fusion</div><div class="v sm">In-database</div><div class="s">Upstash fuses the dense and sparse rankings; a bundled BM25 index takes over if Upstash is unreachable.</div></div>
+        <div class="kpi"><div class="k">Orchestration</div><div class="v sm">LangGraph</div><div class="s">parse → retrieve → build_context → generate → verify, plus an out-of-scope branch.</div></div>
+        <div class="kpi"><div class="k">Language model</div><div class="v sm">OpenRouter free models</div><div class="s">Discovered at runtime, rotated on errors with cooldowns, 40-second budget. Pin them with <code>OPENROUTER_MODELS</code>.</div></div>
+        <div class="kpi"><div class="k">API</div><div class="v sm">FastAPI</div><div class="s">Chat, search, property detail, chunks, stats and evaluation endpoints, with a cache and a rate limit.</div></div>
+        <div class="kpi"><div class="k">Configuration</div><div class="v sm">3 variables</div><div class="s"><code>UPSTASH_VECTOR_REST_URL</code>, <code>UPSTASH_VECTOR_REST_TOKEN</code>, <code>OPENROUTER_API_KEY</code></div></div>
+      </div>
+      <p class="muted small" style="margin-top:14px">Ingestion: <code>rag/build.py</code> detects the index type and uploads each chunk's text with its metadata. Upserts are keyed by chunk ID and content hash, so re-running only changes what changed.</p>
+    </section>
+
+    <!-- 06 -->
+    <section id="pipeline">
+      <div class="chapter-head"><p class="kicker">Chapter 06</p><h2>Answering a question</h2>
+        <p class="sec-sub">One <code>POST /api/chat</code> request end to end, with the offline build that feeds it.</p></div>
+      <div class="diagram-wrap" id="arch"></div>
+      <div class="legend">
+        <span><i></i>Request path</span><span><i class="dash"></i>Fallback path</span>
+        <span><i class="box"></i>Component</span><span><i class="box gold"></i>Resilience layer</span>
+      </div>
+      <div class="steps" style="margin-top:28px">
+        <div class="step"><b>Receive</b><span>FastAPI validates the question (1–500 characters), rate-limits per IP and serves repeats from a one-hour cache.</span></div>
+        <div class="step"><b>Understand</b><span>Rules extract type, bedrooms, price (“under 3M”), area, purpose and location, with typo tolerance and Arabic, and spot named projects, brands and the topic.</span></div>
+        <div class="step"><b>Search</b><span>Upstash runs dense and BM25 search together over the child chunks, with the metadata filter, and fuses the rankings.</span></div>
+        <div class="step"><b>Relax &amp; rank</b><span>No match? Filters relax one at a time and the answer says so. Children are grouped into parents; a named project ranks first.</span></div>
+        <div class="step"><b>Context</b><span>The top five properties become numbered sources: the facts plus the matched sections, or the full parent.</span></div>
+        <div class="step"><b>Generate</b><span>A free OpenRouter model writes a cited answer. Without one, a grounded summary is composed from the records.</span></div>
+        <div class="step"><b>Verify</b><span>Every number must appear in the sources and every citation must exist; otherwise the grounded summary is used.</span></div>
+        <div class="step"><b>Present</b><span>Answer, cards, and the details that fit the question: why invest, amenities with photos, FAQs, location, licence.</span></div>
+      </div>
+    </section>
+
+    <!-- 07 -->
+    <section id="experience">
+      <div class="chapter-head"><p class="kicker">Chapter 07</p><h2>The DarGlobal experience, inside a chat</h2>
+        <p class="sec-sub">The chunks find the answer; the parent record makes it feel like the developer's own site.</p></div>
+      <div class="exp-grid">
+        <div><b>Galleries</b><span>Original-resolution CMS images with alt text, in a carousel on every card and a full-screen viewer with thumbnails.</span></div>
+        <div><b>Key features with images</b><span>Branded design partners, signature spaces and views, shown as image tiles like on the project page.</span></div>
+        <div><b>Why invest</b><span>The developer's own investment case, shown when the question is about investing or returns.</span></div>
+        <div><b>Amenities</b><span>The full list in the drawer and the relevant amenities in the answer when you ask about facilities.</span></div>
+        <div><b>FAQs</b><span>The project's own questions and answers, matched to what was asked.</span></div>
+        <div><b>Location &amp; video</b><span>Location narrative, nearby highlights, a map link from the CMS coordinates, and the project film where one exists.</span></div>
+      </div>
+    </section>
+
+    <!-- 08 -->
+    <section id="coverage">
+      <div class="chapter-head"><p class="kicker">Data coverage</p><h2>What was ingested</h2></div>
+      <div class="kpis" id="coverage-kpis"></div>
+      <div class="two" style="margin-top:20px">
+        <div class="panel"><h3>Records by country</h3><div class="meters" id="m-country"></div></div>
+        <div class="panel"><h3>Records by property type</h3><div class="meters" id="m-type"></div></div>
+      </div>
+    </section>
+
+    <section id="benchmark">
+      <div class="chapter-head"><p class="kicker">Chapter 08</p><h2>Benchmark, honestly</h2>
+        <p class="sec-sub" id="bench-meta">Loading the latest evaluation…</p></div>
+      <div class="panel caveat">
+        <h3>Read this before the numbers</h3>
+        <ul class="checks">
+          <li><span class="ic-dot"></span><span><b>It's a regression suite, not a real-world accuracy claim.</b> The 165 golden questions are generated from the same records by templates
+            ("Which country is X in?", "villas in East Riyadh"), so they're in-distribution and phrased the way the parser expects. Scores near 100% here mean "nothing broke", not "always right".</span></li>
+          <li><span class="ic-dot"></span><span><b>FAQ questions reuse the FAQ's own wording</b>, which makes them easy for retrieval. Real users paraphrase.</span></li>
+          <li><span class="ic-dot"></span><span><b>Small samples.</b> Some metrics rest on few questions: behaviour on <span id="n-beh">4</span>, parse accuracy on <span id="n-parse">46</span>. Each score shows its sample size and a 95% confidence lower bound (Wilson).</span></li>
+          <li><span class="ic-dot"></span><span><b>Run conditions matter.</b> <span id="run-cond">The stored report was produced with the configuration shown above.</span> Answer checks are substring matches, and nothing here is human-labelled.</span></li>
+          <li><span class="ic-dot"></span><span><b>Not measured yet:</b> paraphrased and multi-intent questions, answer helpfulness rated by people, and Upstash or LLM latency under load. Run <code>eval.run_eval --llm --judge</code> for model-graded faithfulness.</span></li>
+        </ul>
+      </div>
+      <div class="kpis" id="bench-kpis" style="margin-top:20px"></div>
+      <div class="panel" style="margin-top:20px"><h3>Hit@5 by question category · gold mark = release gate</h3><div class="meters" id="m-cat"></div></div>
+      <div class="table-wrap" style="margin-top:20px"><table class="data" id="cat-table"></table></div>
+      <div class="panel" style="margin-top:20px"><h3>Questions below a gate</h3><div id="fails"></div></div>
+      <div class="defs" style="margin-top:20px">
+        <div><b>Hit@k</b><span>The correct property appears in the first k results.</span></div>
+        <div><b>MRR</b><span>One over the rank of the first correct result, averaged.</span></div>
+        <div><b>Recall@k</b><span>Share of expected properties returned in the top k (k = 8).</span></div>
+        <div><b>Precision@k</b><span>For list questions, the share of results that truly meet every constraint.</span></div>
+        <div><b>nDCG@k</b><span>Rank-weighted relevance of the top k.</span></div>
+        <div><b>Parse accuracy</b><span>The question was turned into exactly the expected filters.</span></div>
+        <div><b>Behaviour</b><span>Off-topic declined, impossible requests relaxed, rentals reported as unavailable.</span></div>
+        <div><b>Answer checks</b><span>The answer contains the required fact, as a substring.</span></div>
+        <div><b>95% lower bound</b><span>The Wilson score interval: with n questions, the lowest rate consistent with what we observed.</span></div>
+      </div>
+    </section>
+  </main>
+  <footer class="site-foot"><span>Concierge · retrieval-augmented property assistant</span><span>Playwright · TinyFish · LangGraph · Upstash Vector · OpenRouter</span></footer>
+  <script src="/diagram.js"></script>
+  <script src="/about.js"></script>
+</body>
+</html>
